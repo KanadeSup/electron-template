@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ESNext",
+    "module": "commonjs",
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "noImplicitAny": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "resolveJsonModule": true,
+    "jsx": "react-jsx",
+    "paths": {
+			"@main/*": ["./main/*"],
+			"@client/*": ["./client/*"],
+			"@packages/*": ["./packages/*"]
+		},
+  }
+}
