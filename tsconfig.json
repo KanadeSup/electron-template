@@ -14,7 +14,7 @@
     "paths": {
 			"@main/*": ["./main/*"],
 			"@client/*": ["./client/*"],
-			"@packages/*": ["./packages/*"]
+			"@shared/*": ["./shared/*"]
 		},
   }
 }
