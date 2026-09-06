@@ -1,0 +1,8 @@
+nodeLinker: hoisted
+overrides:
+  "@electron/rebuild": "^4.0.4"
+
+allowBuilds:
+  electron: true
+  electron-winstaller: true
+  esbuild: true
