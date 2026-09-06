@@ -30,6 +30,11 @@
       "trailingCommas": "all"
     }
   },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
   "vcs": {
     "enabled": true,
     "clientKind": "git",
