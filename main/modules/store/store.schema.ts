@@ -1,7 +1,7 @@
 import z from "zod";
 
-export const storageDefinition = {
-  configuration: defineKeyValueStorage({
+export const storeDefinition = {
+  configuration: defineKeyValueStore({
     schema: z.object({ userStoragePath: z.string().nullable() }),
     defaultData: {
       userStoragePath: null,
@@ -9,16 +9,14 @@ export const storageDefinition = {
   }),
 };
 
-export type StorageDefinition = typeof storageDefinition;
-export type StorageData<T extends keyof StorageDefinition> = z.infer<
-  StorageDefinition[T]["schema"]
->;
+export type StoreDefinition = typeof storeDefinition;
+export type StoreData<T extends keyof StoreDefinition> = z.infer<StoreDefinition[T]["schema"]>;
 
 type CollectionSchema = z.ZodObject<{
   records: z.ZodArray<z.ZodType>;
 }>;
 
-export function defineCollectionStorage<TSchema extends CollectionSchema>(config: {
+export function defineCollectionStore<TSchema extends CollectionSchema>(config: {
   schema: TSchema;
 }) {
   return {
@@ -27,7 +25,7 @@ export function defineCollectionStorage<TSchema extends CollectionSchema>(config
   };
 }
 
-function defineKeyValueStorage<TSchema extends z.ZodType>(config: {
+function defineKeyValueStore<TSchema extends z.ZodType>(config: {
   schema: TSchema;
   defaultData: z.infer<TSchema>;
 }) {

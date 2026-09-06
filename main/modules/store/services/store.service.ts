@@ -1,66 +1,66 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { FileSystemService } from "@main/modules/filesystem/services/filesystem.service";
-import { type StorageData, type StorageDefinition, storageDefinition } from "../store.schema";
+import { type StoreData, type StoreDefinition, storeDefinition } from "../store.schema";
 import type {
   CollectionRecord,
   CollectionRecords,
-  CollectionStorage,
-  CollectionStorageKeys,
+  CollectionStore,
+  CollectionStoreKeys,
 } from "../types/store.type";
 
-export class FileStorageService {
+export class FileStoreService {
   private readonly fileSystemService: FileSystemService;
 
   constructor() {
     this.fileSystemService = new FileSystemService();
   }
 
-  /** Get the path to the storage directory */
-  getOrCreateStorageDirPath() {
-    const storagePath = join(this.fileSystemService.getOrCreateDataDirPath(), "storage");
-    if (!existsSync(storagePath)) {
-      mkdirSync(storagePath, { recursive: true });
+  /** Get the path to the store directory */
+  getOrCreateStoreDirPath() {
+    const storePath = join(this.fileSystemService.getOrCreateDataDirPath(), "store");
+    if (!existsSync(storePath)) {
+      mkdirSync(storePath, { recursive: true });
     }
-    return storagePath;
+    return storePath;
   }
 
-  /** Get the path to the storage file
-   * If the file does not exist and the storage is a key-value storage,
+  /** Get the path to the store file
+   * If the file does not exist and the store is a key-value store,
    * create the file with the default data
    */
-  getOrCreateStorageFilePath(name: keyof StorageDefinition) {
-    const filePath = join(this.getOrCreateStorageDirPath(), `${name}.json`);
+  getOrCreateStoreFilePath(name: keyof StoreDefinition) {
+    const filePath = join(this.getOrCreateStoreDirPath(), `${name}.json`);
 
-    if (!existsSync(filePath) && storageDefinition[name].type === "key-value") {
-      const defaultData = storageDefinition[name].defaultData;
+    if (!existsSync(filePath) && storeDefinition[name].type === "key-value") {
+      const defaultData = storeDefinition[name].defaultData;
       writeFileSync(filePath, JSON.stringify(defaultData, null, 2));
     }
 
     return filePath;
   }
 
-  /** Get the storage data */
-  getStorageData<T extends keyof StorageDefinition>(name: T): StorageData<T> {
-    const filePath = this.getOrCreateStorageFilePath(name);
+  /** Get the store data */
+  getStoreData<T extends keyof StoreDefinition>(name: T): StoreData<T> {
+    const filePath = this.getOrCreateStoreFilePath(name);
     const rawData = JSON.parse(readFileSync(filePath, "utf8"));
-    const data = storageDefinition[name].schema.partial().parse(rawData);
+    const data = storeDefinition[name].schema.partial().parse(rawData);
 
-    if (storageDefinition[name].type === "key-value") {
-      const defaultData = storageDefinition[name].defaultData;
+    if (storeDefinition[name].type === "key-value") {
+      const defaultData = storeDefinition[name].defaultData;
       return {
         ...defaultData,
         ...data,
-      } as StorageData<T>;
+      } as StoreData<T>;
     }
-    return data as StorageData<T>;
+    return data as StoreData<T>;
   }
 
-  /** Update the storage data.
+  /** Update the store data.
    * If the value is undefined, it will be ignored.
    */
-  updateStorageData<T extends keyof StorageDefinition>(name: T, data: Partial<StorageData<T>>) {
-    const storageData = this.getStorageData(name);
+  updateStoreData<T extends keyof StoreDefinition>(name: T, data: Partial<StoreData<T>>) {
+    const storeData = this.getStoreData(name);
 
     // Remove undefined values from the data
     const resolvedUpdatedData = Object.fromEntries(
@@ -68,23 +68,23 @@ export class FileStorageService {
     );
 
     const mergedData = {
-      ...storageData,
+      ...storeData,
       ...resolvedUpdatedData,
     };
 
-    const filePath = this.getOrCreateStorageFilePath(name);
+    const filePath = this.getOrCreateStoreFilePath(name);
     writeFileSync(filePath, JSON.stringify(mergedData, null, 2));
   }
 
-  createCollectionRecord<T extends CollectionStorageKeys>(name: T, record: CollectionRecord<T>) {
-    const storageData = this.getCollectionStorage(name);
-    const newRecords = [...storageData.records, record] as CollectionRecords<T>;
+  createCollectionRecord<T extends CollectionStoreKeys>(name: T, record: CollectionRecord<T>) {
+    const storeData = this.getCollectionStore(name);
+    const newRecords = [...storeData.records, record] as CollectionRecords<T>;
     this.setCollectionRecords(name, newRecords);
   }
 
-  setCollectionRecords<T extends CollectionStorageKeys>(name: T, records: CollectionRecords<T>) {
-    const filePath = this.getOrCreateStorageFilePath(name);
-    const { schema } = storageDefinition[name];
+  setCollectionRecords<T extends CollectionStoreKeys>(name: T, records: CollectionRecords<T>) {
+    const filePath = this.getOrCreateStoreFilePath(name);
+    const { schema } = storeDefinition[name];
     // biome-ignore lint/suspicious/noExplicitAny: any type is used to prevent lint error when name T is never
     const typeSafeSchema = schema as [typeof schema] extends [never] ? any : typeof schema;
     const data = typeSafeSchema.parse({
@@ -93,15 +93,15 @@ export class FileStorageService {
     writeFileSync(filePath, JSON.stringify(data, null, 2));
   }
 
-  findCollectionRecord<T extends CollectionStorageKeys>(
+  findCollectionRecord<T extends CollectionStoreKeys>(
     name: T,
     id: string,
   ): CollectionRecord<T> | null {
-    const storageData = this.getCollectionStorage(name);
-    return storageData.records.find((record) => "id" in record && record.id === id) ?? null;
+    const storeData = this.getCollectionStore(name);
+    return storeData.records.find((record) => "id" in record && record.id === id) ?? null;
   }
 
-  private getCollectionStorage<T extends CollectionStorageKeys>(name: T): CollectionStorage<T> {
-    return this.getStorageData(name as keyof StorageDefinition) as unknown as CollectionStorage<T>;
+  private getCollectionStore<T extends CollectionStoreKeys>(name: T): CollectionStore<T> {
+    return this.getStoreData(name as keyof StoreDefinition) as unknown as CollectionStore<T>;
   }
 }

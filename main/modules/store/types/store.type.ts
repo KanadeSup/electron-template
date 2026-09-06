@@ -1,21 +1,19 @@
-import type { StorageData, StorageDefinition } from "../store.schema";
+import type { StoreData, StoreDefinition } from "../store.schema";
 
-type CollectionStorageFallback = {
+type CollectionStoreFallback = {
   // biome-ignore lint/suspicious/noExplicitAny: The any type does not matter here
   records: any[];
 };
 
-// Collection storage keys (automatically inferred from storage definition)
-export type CollectionStorageKeys = {
-  [K in keyof StorageDefinition]: StorageDefinition[K]["type"] extends "collection" ? K : never;
-}[keyof StorageDefinition];
+// Collection store keys (automatically inferred from store definition)
+export type CollectionStoreKeys = {
+  [K in keyof StoreDefinition]: StoreDefinition[K]["type"] extends "collection" ? K : never;
+}[keyof StoreDefinition];
 
-export type CollectionStorage<T extends CollectionStorageKeys> = [CollectionStorageKeys] extends [
-  never,
-]
-  ? CollectionStorageFallback
-  : StorageData<T>;
+export type CollectionStore<T extends CollectionStoreKeys> = [CollectionStoreKeys] extends [never]
+  ? CollectionStoreFallback
+  : StoreData<T>;
 
-export type CollectionRecords<T extends CollectionStorageKeys> = CollectionStorage<T>["records"];
+export type CollectionRecords<T extends CollectionStoreKeys> = CollectionStore<T>["records"];
 
-export type CollectionRecord<T extends CollectionStorageKeys> = CollectionRecords<T>[number];
+export type CollectionRecord<T extends CollectionStoreKeys> = CollectionRecords<T>[number];
