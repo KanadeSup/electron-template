@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { ChatPage } from "./modules/chat/chat-page";
+import { SettingPage } from "./modules/setting/setting-page";
 
 const root = document.getElementById("root");
 if (!root) throw new Error("Root element not found");
@@ -13,6 +14,7 @@ createRoot(root).render(
     <QueryClientProvider client={queryClient}>
       <Routes>
         <Route path="/" element={<ChatPage />} />
+        <Route path="/settings" element={<SettingPage />} />
       </Routes>
     </QueryClientProvider>
   </BrowserRouter>,
