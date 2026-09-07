@@ -76,6 +76,7 @@ class SqliteDatabase {
     const files = readdirSync(join(modulePath, "migrations"));
     return files
       .filter((file) => file.endsWith(".sql"))
+      .sort()
       .map((file) => ({
         name: file.replace(".sql", ""),
         filePath: join(modulePath, "migrations", file),

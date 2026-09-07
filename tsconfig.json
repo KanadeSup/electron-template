@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
     "strict": true,
-    "target": "ESNext",
-    "module": "commonjs",
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
