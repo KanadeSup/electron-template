@@ -1,5 +1,5 @@
 import { cn } from "cn";
-import { AppSidebar } from "../app-sidebar";
+import { AppSidebar } from "../app-sidebar/app-sidebar";
 
 export interface AppLayoutProps {
   children: React.ReactNode;

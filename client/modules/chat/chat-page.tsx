@@ -1,6 +1,6 @@
-import { AssistantSelect } from "../assistant/components/assistant-select";
-import { AppLayout } from "../design-system/components/app-layout";
-import { ChatInput } from "./components/chat-input";
+import { AssistantSelect } from "../assistant/components/assistant-select/assistant-select";
+import { AppLayout } from "../design-system/components/app-layout/app-layout";
+import { ChatInput } from "./components/chat-input/chat-input";
 
 export function ChatPage() {
   return (
