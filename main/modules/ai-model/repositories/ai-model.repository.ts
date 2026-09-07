@@ -6,18 +6,19 @@ export class AIModelRepository {
     const result = sqliteDatabase
       .getDb()
       .prepare(`
-        SELECT model_id, enabled FROM ai_models
+        SELECT model_id, enabled, provider FROM ai_models
         WHERE
           1 = 1
           ${dto.provider ? `AND provider = ${dto.provider}` : ""}
           ${dto.enabled ? `AND enabled = ${dto.enabled}` : ""}
           ${dto.search ? `AND model_id LIKE '%${dto.search}%'` : ""}
       `)
-      .all() as { model_id: string; enabled: boolean }[];
+      .all() as { model_id: string; enabled: boolean; provider: string }[];
 
     return result.map((row) => ({
       id: row.model_id,
       enabled: row.enabled,
+      provider: row.provider,
     }));
   }
 }

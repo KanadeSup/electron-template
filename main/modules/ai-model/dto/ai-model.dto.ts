@@ -7,4 +7,5 @@ export type GetAIModelsInputDto = {
 export type GetAIModelsOutputDto = {
   id: string;
   enabled: boolean;
+  provider: string;
 }[];

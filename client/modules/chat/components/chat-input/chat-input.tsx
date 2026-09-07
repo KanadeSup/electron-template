@@ -1,3 +1,4 @@
+import { ModelSelect } from "@client/modules/ai-model/components/model-select/model-select";
 import { Button } from "@client/modules/design-system/components/shadcn-ui/button";
 import { Textarea } from "@client/modules/design-system/components/shadcn-ui/textarea";
 import { cn } from "cn";
@@ -11,13 +12,15 @@ export type ChatInputProps = {
 export function ChatInput(props: ChatInputProps) {
   const { className, placeholder } = props;
 
+  const [isTextareaFocused, setIsTextareaFocused] = useState(false);
   const [value, setValue] = useState("");
 
   return (
     <div
       className={cn(
         "w-full rounded-xl border border-border",
-        "flex flex-col bg-sidebar border-2 focus-within:border-ring border-input",
+        "flex flex-col bg-sidebar border-2 border-input",
+        isTextareaFocused && "border-ring",
         className,
       )}
     >
@@ -31,9 +34,13 @@ export function ChatInput(props: ChatInputProps) {
         placeholder={placeholder}
         value={value}
         onChange={(e) => setValue(e.target.value)}
+        onFocus={() => setIsTextareaFocused(true)}
+        onBlur={() => setIsTextareaFocused(false)}
       />
-      <div className="flex items-center justify-between gap-2 p-3">
-        <div></div>
+      <div className="flex items-center justify-between gap-2 px-3 py-2">
+        <div>
+          <ModelSelect />
+        </div>
         <Button variant="default" size="icon" className="rounded-2xl" disabled={!value}>
           <SendIcon />
         </Button>
