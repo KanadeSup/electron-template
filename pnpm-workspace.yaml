@@ -1,8 +1,11 @@
 nodeLinker: hoisted
 overrides:
   "@electron/rebuild": "^4.0.4"
+  extract-zip: npm:@electron-internal/extract-zip@1.0.5
+
 
 allowBuilds:
+  better-sqlite3: true
   electron: true
   electron-winstaller: true
   esbuild: true

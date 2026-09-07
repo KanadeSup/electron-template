@@ -9,6 +9,9 @@ export default defineConfig({
       formats: ["cjs"],
       fileName: () => `main.cjs`,
     },
+    rollupOptions: {
+      external: ["better-sqlite3"],
+    },
   },
   resolve: {
     alias: {
