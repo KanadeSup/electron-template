@@ -1,8 +1,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 
-const migrationsDir = join(dirname(fileURLToPath(import.meta.url)), "../modules/migrations");
+const migrationsDir = join(process.cwd(), "public", "migrations");
 
 const rawName = process.argv.slice(2).join(" ").trim();
 

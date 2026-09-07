@@ -1,9 +1,10 @@
-import { db } from "@main/modules/database/sqlite-database";
+import { sqliteDatabase } from "@main/modules/database/sqlite-database";
 import type { GetAIModelsInputDto, GetAIModelsOutputDto } from "../dto/ai-model.dto";
 
 export class AIModelRepository {
   async getAIModels(dto: GetAIModelsInputDto): Promise<GetAIModelsOutputDto> {
-    const result = db
+    const result = sqliteDatabase
+      .getDb()
       .prepare(`
         SELECT model_id, enabled FROM ai_models
         WHERE

@@ -1,15 +1,15 @@
-import { readdirSync, readFileSync } from "node:original-fs";
-import { dirname, join } from "node:path";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { databaseName } from "@main/config";
 import { FileSystemService } from "@main/modules/filesystem/services/filesystem.service";
 import sqlite3, { type Database } from "better-sqlite3";
 import Logger from "electron-log";
 
 class SqliteDatabase {
-  private db: Database;
+  private db: Database | null = null;
   private filesystemService: FileSystemService = new FileSystemService();
 
-  constructor() {
+  init() {
     const appDataPath = this.filesystemService.getOrCreateDataDirPath();
     const databasePath = join(appDataPath, databaseName);
     this.db = new sqlite3(databasePath);
@@ -20,10 +20,16 @@ class SqliteDatabase {
   }
 
   public getDb(): Database {
+    if (!this.db) {
+      throw new Error("Database not initialized");
+    }
     return this.db;
   }
 
   private initMigrationsTable(): void {
+    if (!this.db) {
+      throw new Error("Database not initialized");
+    }
     const hasMigrationsTable =
       this.db
         .prepare(`
@@ -47,6 +53,9 @@ class SqliteDatabase {
   }
 
   private runMigrations(): void {
+    if (!this.db) {
+      throw new Error("Database not initialized");
+    }
     const migrationFiles = this.getMigrationFiles();
 
     const appliedMigrations = this.db
@@ -72,29 +81,26 @@ class SqliteDatabase {
   }
 
   private getMigrationFiles() {
-    const modulePath = dirname(__dirname);
-    const files = readdirSync(join(modulePath, "migrations"));
+    if (!this.db) throw new Error("Database not initialized");
+    const migrationsPath = join(process.cwd(), "public", "migrations");
+    const files = readdirSync(migrationsPath);
     return files
       .filter((file) => file.endsWith(".sql"))
       .sort()
       .map((file) => ({
         name: file.replace(".sql", ""),
-        filePath: join(modulePath, "migrations", file),
+        filePath: join(migrationsPath, file),
       }));
   }
 
   private runMigration(migrationName: string, filePath: string): void {
+    if (!this.db) throw new Error("Database not initialized");
     Logger.info(`Running migration ${migrationName}...`);
-    const migration = readFileSync(filePath, "utf8");
-    this.db.exec(migration);
-    this.db
-      .prepare(`
-      INSERT INTO migrations (name) VALUES (?)
-    `)
-      .run(migrationName);
+    const sql = readFileSync(filePath, "utf8");
+    this.db.exec(sql);
+    this.db.prepare(`INSERT INTO migrations (name) VALUES (?)`).run(migrationName);
     Logger.info(`Migration ${migrationName} completed`);
   }
 }
 
-const sqliteDatabase = new SqliteDatabase();
-export const db = sqliteDatabase.getDb();
+export const sqliteDatabase = new SqliteDatabase();

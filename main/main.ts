@@ -6,6 +6,7 @@ import log from "electron-log/main";
 import started from "electron-squirrel-startup";
 import { BaseError } from "./modules/common/errors/base.error";
 import type { BaseChannel } from "./modules/common/ipc-channel/base-channel";
+import { sqliteDatabase } from "./modules/database/sqlite-database";
 import { sayHelloChannel } from "./modules/hello/hello.channel";
 
 // Initialize the logger to be available in renderer process
@@ -31,6 +32,9 @@ class Main {
 
     app.on("window-all-closed", this.onWindowAllClosed.bind(this));
     app.on("activate", this.onActivate.bind(this));
+
+    // Initialize the database
+    sqliteDatabase.init();
 
     // Register IPC channels
     this.registerIpcChannels(ipcChannels ?? []);
