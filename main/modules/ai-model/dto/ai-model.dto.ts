@@ -1,7 +1,5 @@
-import type { AIProviderId } from "@shared/ai-model/types/ai-model.type";
-
 export type GetAIModelsInputDto = {
-  provider?: AIProviderId;
+  provider?: string;
   enabled?: boolean;
   search?: string;
 };
