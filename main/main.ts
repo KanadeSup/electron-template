@@ -4,7 +4,15 @@ import type { IpcChannelResponse } from "@shared/ipc-channel/ipc-channel.type";
 import { app, BrowserWindow, ipcMain } from "electron";
 import log from "electron-log/main";
 import started from "electron-squirrel-startup";
-import { getAIModelsChannel, getAIProvidersChannel } from "./modules/ai-model/ai-model.channel";
+import {
+  changeAIModelPositionChannel,
+  changeAIProviderPositionChannel,
+  deleteAIModelChannel,
+  getAIModelsChannel,
+  getAIProvidersChannel,
+  updateAIModelChannel,
+  updateAIProviderChannel,
+} from "./modules/ai-model/ai-model.channel";
 import { BaseError } from "./modules/common/errors/base.error";
 import type { BaseChannel } from "./modules/common/ipc-channel/base-channel";
 import { sqliteDatabase } from "./modules/database/sqlite-database";
@@ -131,4 +139,13 @@ class Main {
   }
 }
 
-new Main().init([sayHelloChannel, getAIModelsChannel, getAIProvidersChannel]);
+new Main().init([
+  sayHelloChannel,
+  getAIModelsChannel,
+  getAIProvidersChannel,
+  updateAIProviderChannel,
+  changeAIProviderPositionChannel,
+  updateAIModelChannel,
+  changeAIModelPositionChannel,
+  deleteAIModelChannel,
+]);
