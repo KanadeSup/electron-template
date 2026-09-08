@@ -1,3 +1,4 @@
+import type { QueryClient } from "@tanstack/react-query";
 import type { UseAIModelsParams } from "../hooks/use-ai-models";
 import type { UseAIProvidersParams } from "../hooks/use-ai-providers";
 
@@ -16,3 +17,8 @@ export const aiModelsKey = {
 
   list: (params: UseAIModelsParams) => [...aiModelsKey.lists(), params] as const,
 };
+
+export function invalidateAIModelQueries(queryClient: QueryClient) {
+  queryClient.invalidateQueries({ queryKey: aiProvidersKey.all });
+  queryClient.invalidateQueries({ queryKey: aiModelsKey.all });
+}

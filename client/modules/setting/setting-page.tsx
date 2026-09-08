@@ -5,7 +5,7 @@ import {
   type SettingSectionId,
   SettingSidebar,
 } from "./components/setting-sidebar/setting-sidebar";
-import { AiModelSetting } from "./setting-sections/ai-model-setting";
+import { AiModelSetting } from "./setting-sections/ai-model-setting/ai-model-setting";
 
 export function SettingPage() {
   const [selected, setSelected] = useState<SettingSectionId>("general");

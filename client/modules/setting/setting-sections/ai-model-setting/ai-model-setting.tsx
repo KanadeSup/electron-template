@@ -1,9 +1,12 @@
 import { useAIProviders } from "@client/modules/ai-model/hooks/use-ai-providers";
+import { useChangeAIProviderPosition } from "@client/modules/ai-model/hooks/use-change-ai-provider-position";
+import { useUpdateAIProvider } from "@client/modules/ai-model/hooks/use-update-ai-provider";
 import type { AIProviderWithModels } from "@client/modules/ai-model/types/ai-model.type";
 import { getProviderIcon } from "@client/modules/ai-model/utils/ai-model.util";
 import { Button } from "@client/modules/design-system/components/shadcn-ui/button";
 import { ScrollArea } from "@client/modules/design-system/components/shadcn-ui/scroll-area";
 import { Switch } from "@client/modules/design-system/components/shadcn-ui/switch";
+import type { ChangePositionDirection } from "@shared/contracts/ai-model.contract";
 import { cn } from "cn";
 import { BotIcon, ChevronDownIcon, ChevronUpIcon, RefreshCcwIcon } from "lucide-react";
 import { useState } from "react";
@@ -12,6 +15,8 @@ import { AiModelProviderDetail } from "./ai-model-provider-detail";
 export function AiModelSetting() {
   const [selectedProviderId, setSelectedProviderId] = useState<number | null>(null);
   const { providers, isLoading, error, refetch } = useAIProviders({ includeAIModels: true });
+  const updateProvider = useUpdateAIProvider();
+  const changePosition = useChangeAIProviderPosition();
 
   const selectedProvider = providers.find((provider) => provider.id === selectedProviderId);
   const sortedProviders = [...providers].sort((a, b) => a.sortOrder - b.sortOrder);
@@ -54,7 +59,11 @@ export function AiModelSetting() {
             provider={provider}
             isFirst={index === 0}
             isLast={index === sortedProviders.length - 1}
+            isMoving={changePosition.isPending && changePosition.variables?.id === provider.id}
+            isUpdating={updateProvider.isPending && updateProvider.variables?.id === provider.id}
             onSelect={() => setSelectedProviderId(provider.id)}
+            onMove={(direction) => changePosition.mutate({ id: provider.id, direction })}
+            onToggleEnabled={(enabled) => updateProvider.mutate({ id: provider.id, enabled })}
           />
         ))}
       </div>
@@ -66,11 +75,16 @@ type ProviderRowProps = {
   provider: AIProviderWithModels;
   isFirst: boolean;
   isLast: boolean;
+  isMoving: boolean;
+  isUpdating: boolean;
   onSelect: () => void;
+  onMove: (direction: ChangePositionDirection) => void;
+  onToggleEnabled: (enabled: boolean) => void;
 };
 
 function ProviderRow(props: ProviderRowProps) {
-  const { provider, isFirst, isLast, onSelect } = props;
+  const { provider, isFirst, isLast, isMoving, isUpdating, onSelect, onMove, onToggleEnabled } =
+    props;
   const ProviderIcon = getProviderIcon(provider.providerId) ?? BotIcon;
 
   return (
@@ -85,15 +99,30 @@ function ProviderRow(props: ProviderRowProps) {
       <ProviderIcon className="w-4 h-4" />
       <p className="min-w-0 flex-1 truncate font-medium">{provider.providerName}</p>
       <div className="flex items-center gap-0.5" onClick={(event) => event.stopPropagation()}>
-        <Button variant="secondary" size="icon" disabled={isFirst}>
+        <Button
+          variant="secondary"
+          size="icon"
+          disabled={isFirst || isMoving}
+          onClick={() => onMove("up")}
+        >
           <ChevronUpIcon />
         </Button>
-        <Button variant="secondary" size="icon" disabled={isLast}>
+        <Button
+          variant="secondary"
+          size="icon"
+          disabled={isLast || isMoving}
+          onClick={() => onMove("down")}
+        >
           <ChevronDownIcon />
         </Button>
       </div>
       <div onClick={(event) => event.stopPropagation()}>
-        <Switch size="default" checked={provider.enabled} />
+        <Switch
+          size="default"
+          checked={provider.enabled}
+          disabled={isUpdating}
+          onCheckedChange={onToggleEnabled}
+        />
       </div>
     </div>
   );
