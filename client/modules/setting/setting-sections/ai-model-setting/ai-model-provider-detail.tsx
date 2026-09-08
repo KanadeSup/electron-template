@@ -14,6 +14,7 @@ import {
   ChevronLeftIcon,
   ChevronUpIcon,
   PencilIcon,
+  RefreshCcwIcon,
   Trash2Icon,
 } from "lucide-react";
 import { useState } from "react";
@@ -59,7 +60,12 @@ export function AiModelProviderDetail(props: AiModelProviderDetailProps) {
           </section>
 
           <section className="flex flex-col gap-2 rounded-xl border border-input bg-sidebar p-3">
-            <p className="text-base font-semibold">Models</p>
+            <div className="flex items-center justify-between">
+              <p className="text-base font-semibold">Models</p>
+              <Button variant="ghost" size="icon-sm">
+                <RefreshCcwIcon />
+              </Button>
+            </div>
             {models.length === 0 && (
               <p className="text-sm text-muted-foreground">No models added yet.</p>
             )}
