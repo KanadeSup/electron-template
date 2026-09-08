@@ -1,7 +1,7 @@
 import type { AIModel, AIProviderWithModels } from "@client/modules/ai-model/types/ai-model.type";
 import { getProviderIcon } from "@client/modules/ai-model/utils/ai-model.util";
 import { Button } from "@client/modules/design-system/components/shadcn-ui/button";
-import { Input } from "@client/modules/design-system/components/shadcn-ui/input";
+import { PasswordInput } from "@client/modules/design-system/components/shadcn-ui/password-input";
 import { ScrollArea } from "@client/modules/design-system/components/shadcn-ui/scroll-area";
 import { Switch } from "@client/modules/design-system/components/shadcn-ui/switch";
 import {
@@ -39,8 +39,7 @@ export function AiModelProviderDetail(props: AiModelProviderDetailProps) {
         <div className="flex flex-col gap-3 pr-4">
           <section className="flex flex-col gap-2 rounded-xl border border-input bg-sidebar p-3">
             <p className="text-sm font-semibold">API key</p>
-            <Input
-              type="password"
+            <PasswordInput
               value={apiKey}
               placeholder="Enter API key"
               onChange={(event) => setApiKey(event.target.value)}
