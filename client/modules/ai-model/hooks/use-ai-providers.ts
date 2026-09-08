@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import Logger from "electron-log/renderer.js";
 import { getAIModels, getAIProviders } from "../api/ai-model.api";
-import { aiModelsKey } from "../query-key/ai-model.key";
+import { aiProvidersKey } from "../query-key/ai-model.key";
 
 const LOG_SCOPE = "useAIProviders";
 export type UseAIProvidersParams = {
@@ -11,7 +11,7 @@ export type UseAIProvidersParams = {
 
 export function useAIProviders(params: UseAIProvidersParams) {
   const query = useQuery({
-    queryKey: aiModelsKey.list(params),
+    queryKey: aiProvidersKey.list(params),
 
     queryFn: async () => {
       const [providersResponse, modelsResponse] = await Promise.all([

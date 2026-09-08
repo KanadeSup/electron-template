@@ -6,3 +6,7 @@ import type {
 export type AIProvider = GetAIProvidersResponse[number];
 
 export type AIModel = GetAIModelsResponse[number];
+
+export type AIProviderWithModels = AIProvider & {
+  models: AIModel[];
+};

@@ -5,6 +5,7 @@ import {
   type SettingSectionId,
   SettingSidebar,
 } from "./components/setting-sidebar/setting-sidebar";
+import { AiModelSetting } from "./setting-sections/ai-model-setting";
 
 export function SettingPage() {
   const [selected, setSelected] = useState<SettingSectionId>("general");
@@ -15,8 +16,9 @@ export function SettingPage() {
       <div className="w-64 shrink-0">
         <SettingSidebar selected={selected} onSelect={setSelected} />
       </div>
-      <div className="flex-1 overflow-hidden py-2">
+      <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden py-2">
         <p className="font-semibold">{section.label}</p>
+        {selected === "ai-model" && <AiModelSetting />}
       </div>
     </AppLayout>
   );
