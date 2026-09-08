@@ -1,40 +1,35 @@
 import { useQuery } from "@tanstack/react-query";
 import Logger from "electron-log/renderer.js";
-import { useEffect, useState } from "react";
-import { getModels } from "../api/ai-model.api";
+import { getAIModels } from "../api/ai-model.api";
 import { aiModelsKey } from "../query-key/ai-model.key";
-import type { AIModel } from "../types/ai-model.type";
 
-const LOG_SCOPE = "useAiModels";
-export type UseAiModelsParams = {
+const LOG_SCOPE = "useAIModels";
+export type UseAIModelsParams = {
   enabled?: boolean;
   search?: string;
-  provider?: string;
+  providerId?: string;
 };
 
-export function useAiModels(params: UseAiModelsParams) {
-  const [models, setModels] = useState<AIModel[]>([]);
-  const [error, setError] = useState<Error | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const { data: response, refetch } = useQuery({
+export function useAIModels(params: UseAIModelsParams) {
+  const {
+    data = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: aiModelsKey.list(params),
-    queryFn: () =>
-      getModels({
+    queryFn: async () => {
+      const res = await getAIModels({
         enabled: params.enabled,
         search: params.search,
-        provider: params.provider,
-      }),
+        providerId: params.providerId,
+      });
+      if (!res.success) {
+        Logger.scope(LOG_SCOPE).error(res.errorMessage ?? "Unknown error");
+        throw new Error(res.errorMessage ?? "Unknown error");
+      }
+      return res.data;
+    },
   });
-  useEffect(() => {
-    if (!response) return;
-    if (!response.success) {
-      Logger.scope(LOG_SCOPE).error(response.errorMessage ?? "Unknown error");
-      setError(new Error(response.errorMessage ?? "Unknown error"));
-      return;
-    }
-
-    setModels(response.data);
-    setIsLoading(false);
-  }, [response]);
-  return { models, isLoading, error, refetch };
+  return { data, isLoading, error, refetch };
 }

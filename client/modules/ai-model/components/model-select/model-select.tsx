@@ -7,8 +7,8 @@ import {
 import { ScrollArea } from "@client/modules/design-system/components/shadcn-ui/scroll-area";
 import { cn } from "cn";
 import { BotIcon, RefreshCcwIcon } from "lucide-react";
-import { useAiModels } from "../../hooks/use-ai-models";
-import { getProviderIcon, groupModelsByProvider } from "../../utils/ai-model.util";
+import { useAIProviders } from "../../hooks/use-ai-providers";
+import { getProviderIcon } from "../../utils/ai-model.util";
 
 export type ModelSelectProps = {
   selectedModel?: string | null;
@@ -17,7 +17,7 @@ export type ModelSelectProps = {
 export function ModelSelect(props: ModelSelectProps) {
   const { selectedModel, onChange } = props;
 
-  const { models, error, refetch } = useAiModels({ enabled: true });
+  const { providers, error, refetch } = useAIProviders({ enabled: true, includeAIModels: true });
   return (
     <div>
       <Popover>
@@ -45,8 +45,8 @@ export function ModelSelect(props: ModelSelectProps) {
           {!error && (
             <ScrollArea className="max-h-80">
               <div className="flex flex-col gap-2">
-                {groupModelsByProvider(models).map((provider) => {
-                  const ProviderIcon = getProviderIcon(provider.id) ?? BotIcon;
+                {providers.map((provider) => {
+                  const ProviderIcon = getProviderIcon(provider.providerId) ?? BotIcon;
                   return (
                     <div
                       key={provider.id}
@@ -57,7 +57,7 @@ export function ModelSelect(props: ModelSelectProps) {
                     >
                       <div className="flex items-center gap-2">
                         <ProviderIcon className="w-4 h-4" />
-                        <p className="text-muted-foreground">{provider.name}</p>
+                        <p className="text-muted-foreground">{provider.providerName}</p>
                       </div>
                       <div className="flex flex-col gap-0.5">
                         {provider.models.map((model) => (
@@ -66,11 +66,11 @@ export function ModelSelect(props: ModelSelectProps) {
                             className={cn(
                               "flex flex-col cursor-pointer mt-1",
                               "hover:bg-muted/80 p-1.5 rounded-md",
-                              selectedModel === model.id && "bg-muted/80",
+                              selectedModel === model.modelId && "bg-muted/80",
                             )}
-                            onClick={() => onChange?.(model.id)}
+                            onClick={() => onChange?.(model.modelId)}
                           >
-                            <p>{model.id}</p>
+                            <p>{model.modelId}</p>
                           </div>
                         ))}
                       </div>

@@ -1,11 +1,25 @@
 export type GetAIModelsInputDto = {
-  provider?: string;
+  providerId?: string;
   enabled?: boolean;
   search?: string;
 };
 
 export type GetAIModelsOutputDto = {
-  id: string;
+  id: number;
+  modelId: string;
   enabled: boolean;
-  provider: string;
+  providerId: string;
+  sortOrder: number;
 }[];
+
+export type AIProviderInputDto = {
+  enabled?: boolean;
+};
+
+export type AIProviderOutputDto = {
+  id: number;
+  providerId: string;
+  providerName: string;
+  enabled: boolean;
+  sortOrder: number;
+};
