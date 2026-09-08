@@ -1,6 +1,7 @@
 import { useChangeAIModelPosition } from "@client/modules/ai-model/hooks/use-change-ai-model-position";
 import { useDeleteAIModel } from "@client/modules/ai-model/hooks/use-delete-ai-model";
 import { useUpdateAIModel } from "@client/modules/ai-model/hooks/use-update-ai-model";
+import { useUpdateAIProvider } from "@client/modules/ai-model/hooks/use-update-ai-provider";
 import type { AIModel, AIProviderWithModels } from "@client/modules/ai-model/types/ai-model.type";
 import { getProviderIcon } from "@client/modules/ai-model/utils/ai-model.util";
 import { Button } from "@client/modules/design-system/components/shadcn-ui/button";
@@ -30,7 +31,9 @@ export function AiModelProviderDetail(props: AiModelProviderDetailProps) {
   const { provider, onBack } = props;
   const ProviderIcon = getProviderIcon(provider.providerId) ?? BotIcon;
   const models = [...provider.models].sort((a, b) => a.sortOrder - b.sortOrder);
-  const [apiKey, setApiKey] = useState("");
+  const [apiKey, setApiKey] = useState(provider.apiKey);
+  const [isApiKeyDirty, setIsApiKeyDirty] = useState(false);
+  const updateProvider = useUpdateAIProvider();
   const updateModel = useUpdateAIModel();
   const changePosition = useChangeAIModelPosition();
   const deleteModel = useDeleteAIModel();
@@ -55,7 +58,19 @@ export function AiModelProviderDetail(props: AiModelProviderDetailProps) {
             <PasswordInput
               value={apiKey}
               placeholder="Enter API key"
-              onChange={(event) => setApiKey(event.target.value)}
+              disabled={updateProvider.isPending}
+              onChange={(event) => {
+                setApiKey(event.target.value);
+                setIsApiKeyDirty(true);
+              }}
+              onBlur={() => {
+                if (!isApiKeyDirty) return;
+
+                updateProvider.mutate(
+                  { id: provider.id, apiKey },
+                  { onSuccess: () => setIsApiKeyDirty(false) },
+                );
+              }}
             />
           </section>
 

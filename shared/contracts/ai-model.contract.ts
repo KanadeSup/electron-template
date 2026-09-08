@@ -3,6 +3,7 @@ export type AIProvider = {
   providerId: string;
   providerName: string;
   enabled: boolean;
+  apiKey: string;
   sortOrder: number;
 };
 

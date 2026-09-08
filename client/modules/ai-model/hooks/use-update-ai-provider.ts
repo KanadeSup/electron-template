@@ -7,7 +7,8 @@ const LOG_SCOPE = "useUpdateAIProvider";
 
 export type UseUpdateAIProviderParams = {
   id: number;
-  enabled: boolean;
+  enabled?: boolean;
+  apiKey?: string;
 };
 
 export function useUpdateAIProvider() {

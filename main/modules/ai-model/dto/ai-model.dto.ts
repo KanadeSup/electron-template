@@ -13,6 +13,7 @@ export type AIProviderOutputDto = {
   providerId: string;
   providerName: string;
   enabled: boolean;
+  apiKey: string;
   sortOrder: number;
 };
 

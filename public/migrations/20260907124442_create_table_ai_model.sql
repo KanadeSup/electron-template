@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS ai_providers (
   provider_id TEXT NOT NULL,
   provider_name TEXT NOT NULL,
   enabled BOOLEAN NOT NULL DEFAULT TRUE,
+  api_key TEXT NOT NULL DEFAULT '',
   sort_order INTEGER NOT NULL DEFAULT 0
 );
 

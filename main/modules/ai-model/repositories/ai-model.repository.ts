@@ -18,6 +18,7 @@ const aiProviderSchema = z.object({
   providerId: z.string(),
   providerName: z.string(),
   enabled: z.coerce.boolean(),
+  apiKey: z.string(),
   sortOrder: z.number(),
 });
 
@@ -35,7 +36,7 @@ export class AIModelRepository {
   async getAIProviders(dto: GetAIProviderInputDto): Promise<GetAIProvidersOutputDto> {
     const result = this.db
       .prepare(`
-        SELECT id, provider_id, provider_name, enabled, sort_order
+        SELECT id, provider_id, provider_name, enabled, api_key, sort_order
         FROM ai_providers
         WHERE 1 = 1
           ${dto.enabled !== undefined ? `AND enabled = ${dto.enabled}` : ""}
@@ -48,7 +49,7 @@ export class AIModelRepository {
   async getAIProviderById(id: number): Promise<AIProviderOutputDto | null> {
     const result = this.db
       .prepare(`
-        SELECT id, provider_id, provider_name, enabled, sort_order
+        SELECT id, provider_id, provider_name, enabled, api_key, sort_order
         FROM ai_providers
         WHERE id = ?
       `)
@@ -59,7 +60,7 @@ export class AIModelRepository {
   }
 
   async updateAIProvider(dto: UpdateAIProviderInputDto): Promise<AIProviderOutputDto | null> {
-    // If there is any field to updaeted return immediately
+    // If there is any field to update, return immediately
     if (dto.enabled === undefined && dto.apiKey === undefined) {
       return null;
     }
@@ -69,7 +70,7 @@ export class AIModelRepository {
         UPDATE ai_providers
         SET 
           ${dto.enabled !== undefined ? `enabled = ${dto.enabled}` : ""} 
-          ${dto.apiKey !== undefined ? `api_key = ${dto.apiKey}` : ""}
+          ${dto.apiKey !== undefined ? `api_key = '${dto.apiKey.trim()}'` : ""}
         WHERE id = ${dto.id}
       `)
       .run();
