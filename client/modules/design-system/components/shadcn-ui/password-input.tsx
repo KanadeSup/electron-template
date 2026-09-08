@@ -66,7 +66,7 @@ export function PasswordInput({
         <InputGroupButton
           variant="ghost"
           size="icon-sm"
-          className="hover:bg-transparent!"
+          className="hover:bg-transparent! size-7"
           disabled={disabled}
           onClick={() => setVisible((previous) => !previous)}
         >
@@ -75,7 +75,7 @@ export function PasswordInput({
         <InputGroupButton
           variant="ghost"
           size="icon-sm"
-          className="hover:bg-transparent!"
+          className="hover:bg-transparent! size-7"
           onClick={handleCopy}
         >
           {copied ? <CheckIcon /> : <CopyIcon />}

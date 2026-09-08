@@ -38,19 +38,19 @@ export function AiModelProviderDetail(props: AiModelProviderDetailProps) {
       <ScrollArea className="min-h-0 flex-1">
         <div className="flex flex-col gap-3 pr-4">
           <section className="flex flex-col gap-2 rounded-xl border border-input bg-sidebar p-3">
-            <p className="text-sm font-semibold">API key</p>
+            <p className="text-base font-semibold">API key</p>
+            <p className="text-sm text-muted-foreground">
+              {getProviderApiKeyDescription(provider.providerName)}
+            </p>
             <PasswordInput
               value={apiKey}
               placeholder="Enter API key"
               onChange={(event) => setApiKey(event.target.value)}
             />
-            <p className="text-sm text-muted-foreground">
-              {getProviderApiKeyDescription(provider.providerName)}
-            </p>
           </section>
 
           <section className="flex flex-col gap-2 rounded-xl border border-input bg-sidebar p-3">
-            <p className="text-sm font-semibold">Models</p>
+            <p className="text-base font-semibold">Models</p>
             {models.length === 0 && (
               <p className="text-sm text-muted-foreground">No models added yet.</p>
             )}
