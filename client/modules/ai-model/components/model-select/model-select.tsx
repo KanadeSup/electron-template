@@ -7,6 +7,7 @@ import {
 import { ScrollArea } from "@client/modules/design-system/components/shadcn-ui/scroll-area";
 import { cn } from "cn";
 import { BotIcon, RefreshCcwIcon } from "lucide-react";
+import { useState } from "react";
 import { useAIProviders } from "../../hooks/use-ai-providers";
 import { getProviderIcon } from "../../utils/ai-model.util";
 
@@ -17,15 +18,19 @@ export type ModelSelectProps = {
 export function ModelSelect(props: ModelSelectProps) {
   const { selectedModel, onChange } = props;
 
+  const [isOpen, setIsOpen] = useState(false);
+
   const { providers, error, refetch } = useAIProviders({ enabled: true, includeAIModels: true });
+
   return (
     <div>
-      <Popover>
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger
           className={cn(
             "text-sm font-semibold cursor-pointer",
             "border-2 border-input rounded-xl p-1 px-2",
-            "hover:border-ring text-muted-foreground",
+            "hover:border-ring/80 text-muted-foreground",
+            isOpen && "border-ring/80",
           )}
         >
           Choose Model
