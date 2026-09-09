@@ -138,17 +138,21 @@ export class AIModelRepository {
       parsedResult.map((item) => [item.providerId, item.modelSortOrder]),
     );
 
-    this.db.transaction((models: CreateAIModelInputDto[]) => {
+    const createManyAIModels = this.db.transaction((models: CreateAIModelInputDto[]) => {
       for (const model of models) {
-        const sortOrder = sortOrderByProviderId[model.providerId] + 1;
+        let sortOrder = 0;
+        if (sortOrderByProviderId[model.providerId] != null) {
+          sortOrder = sortOrderByProviderId[model.providerId] + 1;
+        }
         const result = this.db
           .prepare(`
             INSERT INTO ai_models (model_name, provider_id, sort_order) 
-            VALUES ('${model.modelName}', ${model.providerId}, ${sortOrder})
+            SELECT '${model.modelName}', ${model.providerId}, ${sortOrder}
             WHERE NOT EXISTS (
               SELECT 1 
               FROM ai_models 
-              WHERE model_name = '${model.modelName}' AND provider_id = ${model.providerId})
+              WHERE model_name = '${model.modelName}' AND provider_id = ${model.providerId}
+            )
           `)
           .run();
         if (result.changes > 0) {
@@ -156,5 +160,6 @@ export class AIModelRepository {
         }
       }
     });
+    createManyAIModels(models);
   }
 }

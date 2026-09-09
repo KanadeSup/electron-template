@@ -93,6 +93,10 @@ export class AIModelService {
       .filter((model) => !fetchedModels.some((m) => m.modelName === model.modelName))
       .map((model) => model.id);
 
+    console.log("modelsToCreate", modelsToCreate);
+    console.log("modelIdsToDelete", modelIdsToDelete);
+    console.log("fetchedModels", fetchedModels);
+
     this.aiModelRepository.deleteAIModelsByIds(modelIdsToDelete);
 
     this.aiModelRepository.createAIModels(
