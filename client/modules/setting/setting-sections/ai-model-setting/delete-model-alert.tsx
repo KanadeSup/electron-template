@@ -30,9 +30,12 @@ export function DeleteModelAlert(props: DeleteModelAlertProps) {
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete model</AlertDialogTitle>
-          <AlertDialogDescription>This will permanently delete {modelName}.</AlertDialogDescription>
+          <AlertDialogDescription className="text-sm">
+            This will permanently delete [
+            <span className="text-foreground/90 font-medium">{modelName}</span>].
+          </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
+        <AlertDialogFooter className="bg-card border-0">
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
             variant="destructive"

@@ -108,35 +108,38 @@ function ModelRow(props: ModelRowProps) {
   return (
     <div className="flex items-center gap-2 rounded-xl p-2 hover:bg-muted">
       <p className="min-w-0 flex-1 truncate text-sm font-medium">{model.modelName}</p>
-      <div className="flex items-center gap-0.5">
+      <div className="flex items-center gap-1">
         <Button
-          variant="ghost"
-          size="icon-xs"
+          variant="secondary"
+          size="icon-sm"
           disabled={isFirst || isMoving}
+          className="size-8"
           onClick={() => onMove("up")}
         >
           <ChevronUpIcon />
         </Button>
         <Button
-          variant="ghost"
-          size="icon-xs"
+          variant="secondary"
+          size="icon-sm"
           disabled={isLast || isMoving}
+          className="size-8"
           onClick={() => onMove("down")}
         >
           <ChevronDownIcon />
         </Button>
         <Button
-          variant="ghost"
-          size="icon-xs"
+          variant="secondary"
+          size="icon-sm"
           disabled={isUpdating}
+          className="size-8"
           onClick={() => setIsEditOpen(true)}
         >
           <PencilIcon />
         </Button>
         <Button
-          variant="ghost"
-          size="icon-xs"
-          className="text-destructive"
+          variant="destructive"
+          size="icon-sm"
+          className="size-8 text-destructive"
           disabled={isDeleting}
           onClick={() => setIsDeleteOpen(true)}
         >
@@ -144,7 +147,7 @@ function ModelRow(props: ModelRowProps) {
         </Button>
       </div>
       <Switch
-        size="sm"
+        size="default"
         checked={model.enabled}
         disabled={isUpdating}
         onCheckedChange={onToggleEnabled}

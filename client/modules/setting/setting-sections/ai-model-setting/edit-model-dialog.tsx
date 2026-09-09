@@ -52,7 +52,7 @@ export function EditModelDialog(props: EditModelDialogProps) {
             }
           }}
         />
-        <DialogFooter>
+        <DialogFooter className="bg-card border-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>

@@ -62,7 +62,7 @@ export class AIModelRepository {
       .prepare(`
         UPDATE ai_models
         SET 
-          ${dto.modelName !== undefined ? `model_name = ${dto.modelName}` : ""} 
+          ${dto.modelName !== undefined ? `model_name = '${dto.modelName}'` : ""} 
           ${dto.enabled !== undefined ? `enabled = ${dto.enabled}` : ""}
         WHERE id = ${dto.id}
       `)
