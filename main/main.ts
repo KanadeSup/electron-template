@@ -19,6 +19,18 @@ import {
 } from "./modules/ai-model/ai-provider.channel";
 import { BaseError } from "./modules/common/errors/base.error";
 import type { BaseChannel } from "./modules/common/ipc-channel/base-channel";
+import {
+  createConversationChannel,
+  deleteConversationChannel,
+  getConversationByIdChannel,
+  getConversationListChannel,
+} from "./modules/conversation/conversation.channels";
+import {
+  createMessageChannel,
+  deleteMessageChannel,
+  getMessageByIdChannel,
+  getMessageListChannel,
+} from "./modules/conversation/message.channel";
 import { sqliteDatabase } from "./modules/database/sqlite-database";
 import { sayHelloChannel } from "./modules/hello/hello.channel";
 
@@ -156,4 +168,12 @@ new Main().init([
   deleteAIModelChannel,
   checkAPIKeyChannel,
   fetchModelByProviderChannel,
+  getConversationListChannel,
+  getConversationByIdChannel,
+  createConversationChannel,
+  deleteConversationChannel,
+  getMessageListChannel,
+  getMessageByIdChannel,
+  createMessageChannel,
+  deleteMessageChannel,
 ]);
