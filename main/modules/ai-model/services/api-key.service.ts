@@ -4,6 +4,6 @@ export class ApiKeyService {
   private readonly aiProviderRepository = new AIProviderRepository();
 
   getApiKeyByProviderId(providerId: string): string {
-    return this.aiProviderRepository.getApiKeyByProviderId(providerId);
+    return this.aiProviderRepository.getAPIKeyByProviderId(providerId);
   }
 }

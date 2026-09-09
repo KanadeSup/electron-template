@@ -69,3 +69,14 @@ export type ChangeAIProviderPositionInputDto = {
   id: number;
   direction: ChangePositionDirection;
 };
+
+// ========== Fetch model by provider ==============
+export type FetchModelByProviderOutputDto = {
+  modelId: string;
+}[];
+
+// ========== Create AI model ==============
+export type CreateAIModelInputDto = {
+  modelId: string;
+  providerId: string;
+};

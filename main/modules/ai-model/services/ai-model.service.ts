@@ -1,4 +1,5 @@
 import { BadRequestError, NotFoundError } from "@main/modules/common/errors/common.error";
+import { LLMProviderFactory } from "@main/modules/llm/factories/provider.factory";
 import type { ChangePositionDirection } from "@shared/contracts/ai-model.contract";
 import type {
   AIModelOutputDto,
@@ -6,6 +7,7 @@ import type {
   ChangeAIModelPositionInputDto,
   ChangeAIProviderPositionInputDto,
   DeleteAIModelInputDto,
+  FetchModelByProviderOutputDto,
   GetAIModelsInputDto,
   GetAIModelsOutputDto,
   GetAIProviderInputDto,
@@ -92,6 +94,34 @@ export class AIModelService {
     if (!deleted) {
       throw new NotFoundError("AI model not found");
     }
+  }
+
+  async fetchModelByProvider(providerId: string): Promise<FetchModelByProviderOutputDto> {
+    const provider = this.aiProviderRepository.getAIProviderByProviderId(providerId);
+    if (!provider) throw new NotFoundError("AI provider not found");
+
+    const llmProviderFactory = new LLMProviderFactory();
+    const llmProvider = llmProviderFactory.getProvider(provider.providerId, {});
+    const fetchedModels = await llmProvider.getModelList();
+    const currentModels = this.aiModelRepository.getAIModels({ providerId });
+
+    const modelsToCreate = fetchedModels
+      .filter((model) => !currentModels.some((m) => m.modelId === model.modelId))
+      .map((model) => model.modelId);
+    const modelsToDelete = currentModels
+      .filter((model) => !fetchedModels.some((m) => m.modelId === model.modelId))
+      .map((model) => model.id);
+
+    this.aiModelRepository.deleteAIModelsByIds(modelsToDelete);
+
+    this.aiModelRepository.createAIModels(
+      modelsToCreate.map((model) => ({
+        modelId: model,
+        providerId,
+      })),
+    );
+
+    return this.aiModelRepository.getAIModels({ providerId });
   }
 
   private moveItemByDirection<T extends { id: number }>(

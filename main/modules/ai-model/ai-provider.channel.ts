@@ -8,6 +8,7 @@ import {
 } from "@shared/contracts/ai-provider.contract";
 import { createChannel } from "../common/ipc-channel/base-channel";
 import { LLMProviderFactory } from "../llm/factories/provider.factory";
+import { AIModelService } from "./services/ai-model.service";
 
 export const checkAPIKeyChannel = createChannel<CheckAPIKeyRequest, CheckAPIKeyResponse>({
   name: CHECK_API_KEY_CHANNEL_NAME,
@@ -27,9 +28,8 @@ export const fetchModelByProviderChannel = createChannel<
   name: FETCH_MODEL_BY_PROVIDER_CHANNEL_NAME,
   handle: async (request) => {
     const { providerId } = request;
-    const providerFactory = new LLMProviderFactory();
-    const provider = providerFactory.getProvider(providerId, {});
-    const models = await provider.getModelList();
+    const aiModelService = new AIModelService();
+    const models = await aiModelService.fetchModelByProvider(providerId);
     return models;
   },
 });

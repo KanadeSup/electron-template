@@ -21,7 +21,7 @@ const aiProviderSchema = z.object({
 export class AIProviderRepository {
   private readonly db = sqliteDatabase.getDb();
 
-  async getAIProviders(dto: GetAIProviderInputDto): Promise<GetAIProvidersOutputDto> {
+  getAIProviders(dto: GetAIProviderInputDto): GetAIProvidersOutputDto {
     const result = this.db
       .prepare(`
         SELECT id, provider_id, provider_name, enabled, api_key, sort_order
@@ -34,7 +34,7 @@ export class AIProviderRepository {
     return parseSchema(result, aiProviderSchema.array());
   }
 
-  async getAIProviderById(id: number): Promise<AIProviderOutputDto | null> {
+  getAIProviderById(id: number): AIProviderOutputDto | null {
     const result = this.db
       .prepare(`
         SELECT id, provider_id, provider_name, enabled, api_key, sort_order
@@ -47,7 +47,20 @@ export class AIProviderRepository {
     return parseSchema(result, aiProviderSchema);
   }
 
-  async updateAIProvider(dto: UpdateAIProviderInputDto): Promise<AIProviderOutputDto | null> {
+  getAIProviderByProviderId(providerId: string): AIProviderOutputDto | null {
+    const result = this.db
+      .prepare(`
+        SELECT id, provider_id, provider_name, enabled, api_key, sort_order
+        FROM ai_providers
+        WHERE provider_id = ?
+      `)
+      .get(providerId);
+
+    if (result === undefined) return null;
+    return parseSchema(result, aiProviderSchema);
+  }
+
+  updateAIProvider(dto: UpdateAIProviderInputDto): AIProviderOutputDto | null {
     // If there is any field to update, return immediately
     if (dto.enabled === undefined && dto.apiKey === undefined) {
       return null;
@@ -67,7 +80,7 @@ export class AIProviderRepository {
     return this.getAIProviderById(dto.id);
   }
 
-  async updateAIProviderSortOrders(items: SortOrderItemDto[]): Promise<void> {
+  updateAIProviderSortOrders(items: SortOrderItemDto[]): void {
     const statement = this.db.prepare(`
       UPDATE ai_providers
       SET sort_order = ?
@@ -83,7 +96,7 @@ export class AIProviderRepository {
     updateMany(items);
   }
 
-  getApiKeyByProviderId(providerId: string): string {
+  getAPIKeyByProviderId(providerId: string): string {
     const schema = z.object({
       apiKey: z.string(),
     });
