@@ -13,6 +13,10 @@ import {
   updateAIModelChannel,
   updateAIProviderChannel,
 } from "./modules/ai-model/ai-model.channel";
+import {
+  checkAPIKeyChannel,
+  fetchModelByProviderChannel,
+} from "./modules/ai-model/ai-provider.channel";
 import { BaseError } from "./modules/common/errors/base.error";
 import type { BaseChannel } from "./modules/common/ipc-channel/base-channel";
 import { sqliteDatabase } from "./modules/database/sqlite-database";
@@ -148,4 +152,6 @@ new Main().init([
   updateAIModelChannel,
   changeAIModelPositionChannel,
   deleteAIModelChannel,
+  checkAPIKeyChannel,
+  fetchModelByProviderChannel,
 ]);

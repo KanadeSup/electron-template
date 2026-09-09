@@ -11,11 +11,11 @@ import type {
   SendChatMessageOptions,
   ValidateApiKeyResponse,
 } from "../types/provider.type";
-import type { LlmProvider } from "./llm-provider.inteface";
+import type { LLMProvider } from "./llm-provider.inteface";
 
 const SCOPE = "GeminiProvider";
 
-export class GeminiProvider implements LlmProvider {
+export class GeminiProvider implements LLMProvider {
   readonly name = "gemini" as const;
   private readonly client: GoogleGenAI;
   private readonly apiKeyService = new ApiKeyService();
@@ -126,7 +126,7 @@ export class GeminiProvider implements LlmProvider {
     yield { type: "thinking.start" };
   }
 
-  async validateApiKey(apiKey: string): Promise<ValidateApiKeyResponse> {
+  async validateAPIKey(apiKey: string): Promise<ValidateApiKeyResponse> {
     const validateClient = new GoogleGenAI({ apiKey });
 
     try {

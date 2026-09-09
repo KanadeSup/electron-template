@@ -7,7 +7,7 @@ import type {
   ValidateApiKeyResponse,
 } from "../types/provider.type";
 
-export interface LlmProvider {
+export interface LLMProvider {
   readonly name: string;
 
   generateText(input: GenerateTextInput, options: GenerateTextOptions): Promise<string>;
@@ -22,7 +22,7 @@ export interface LlmProvider {
     options: SendChatMessageOptions,
   ): AsyncGenerator<GenerateTextStreamOutput>;
 
-  validateApiKey(apiKey: string): Promise<ValidateApiKeyResponse>;
+  validateAPIKey(apiKey: string): Promise<ValidateApiKeyResponse>;
 
   getModelList(): Promise<ModelResponse[]>;
 
