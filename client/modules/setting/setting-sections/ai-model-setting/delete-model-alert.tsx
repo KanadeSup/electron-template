@@ -12,13 +12,13 @@ import {
 export type DeleteModelAlertProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  modelId: string;
+  modelName: string;
   isDeleting: boolean;
   onConfirm: () => Promise<void>;
 };
 
 export function DeleteModelAlert(props: DeleteModelAlertProps) {
-  const { open, onOpenChange, modelId, isDeleting, onConfirm } = props;
+  const { open, onOpenChange, modelName, isDeleting, onConfirm } = props;
 
   async function handleConfirm() {
     await onConfirm();
@@ -30,7 +30,7 @@ export function DeleteModelAlert(props: DeleteModelAlertProps) {
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete model</AlertDialogTitle>
-          <AlertDialogDescription>This will permanently delete {modelId}.</AlertDialogDescription>
+          <AlertDialogDescription>This will permanently delete {modelName}.</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>

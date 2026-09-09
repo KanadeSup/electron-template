@@ -1,7 +1,5 @@
-import type {
-  GetAIModelsResponse,
-  GetAIProvidersResponse,
-} from "@shared/contracts/ai-model.contract";
+import type { GetAIModelsResponse } from "@shared/contracts/ai-model.contract";
+import type { GetAIProvidersResponse } from "@shared/contracts/ai-provider.contract";
 
 export type AIProvider = GetAIProvidersResponse[number];
 

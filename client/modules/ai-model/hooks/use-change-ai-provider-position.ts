@@ -1,4 +1,4 @@
-import type { ChangePositionDirection } from "@shared/contracts/ai-model.contract";
+import type { ChangeAIProviderPositionRequest } from "@shared/contracts/ai-provider.contract";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Logger from "electron-log/renderer.js";
 import { changeAIProviderPosition } from "../api/ai-model.api";
@@ -8,7 +8,7 @@ const LOG_SCOPE = "useChangeAIProviderPosition";
 
 export type UseChangeAIProviderPositionParams = {
   id: number;
-  direction: ChangePositionDirection;
+  direction: "up" | "down";
 };
 
 export function useChangeAIProviderPosition() {

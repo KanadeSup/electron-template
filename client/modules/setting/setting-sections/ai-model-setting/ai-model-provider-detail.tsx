@@ -10,7 +10,7 @@ import { Button } from "@client/modules/design-system/components/shadcn-ui/butto
 import { PasswordInput } from "@client/modules/design-system/components/shadcn-ui/password-input";
 import { ScrollArea } from "@client/modules/design-system/components/shadcn-ui/scroll-area";
 import { Switch } from "@client/modules/design-system/components/shadcn-ui/switch";
-import type { ChangePositionDirection } from "@shared/contracts/ai-model.contract";
+import type { ChangeAIModelPositionRequest } from "@shared/contracts/ai-model.contract";
 import type { CheckAPIKeyResponse } from "@shared/contracts/ai-provider.contract";
 import {
   BotIcon,
@@ -34,7 +34,7 @@ export type AiModelProviderDetailProps = {
 
 export function AiModelProviderDetail(props: AiModelProviderDetailProps) {
   const { provider, onBack } = props;
-  const ProviderIcon = getProviderIcon(provider.providerId) ?? BotIcon;
+  const ProviderIcon = getProviderIcon(provider.providerName) ?? BotIcon;
   const models = [...provider.models].sort((a, b) => a.sortOrder - b.sortOrder);
   const [apiKey, setApiKey] = useState(provider.apiKey);
   const [isApiKeyDirty, setIsApiKeyDirty] = useState(false);
@@ -53,7 +53,7 @@ export function AiModelProviderDetail(props: AiModelProviderDetailProps) {
           <ChevronLeftIcon />
         </Button>
         <ProviderIcon className="w-4 h-4" />
-        <p className="font-semibold">{provider.providerName}</p>
+        <p className="font-semibold">{provider.providerLabel}</p>
       </div>
 
       <ScrollArea className="min-h-0 flex-1">
@@ -61,7 +61,7 @@ export function AiModelProviderDetail(props: AiModelProviderDetailProps) {
           <section className="flex flex-col gap-2 rounded-xl border border-input bg-sidebar p-3">
             <p className="text-base font-semibold">API key</p>
             <p className="text-sm text-muted-foreground">
-              {getProviderApiKeyDescription(provider.providerName)}
+              {getProviderApiKeyDescription(provider.providerLabel)}
             </p>
 
             {/* API key input */}
@@ -91,7 +91,7 @@ export function AiModelProviderDetail(props: AiModelProviderDetailProps) {
                 disabled={apiKey.trim().length === 0 || checkAPIKey.isPending}
                 onClick={async () => {
                   const result = await checkAPIKey.mutateAsync({
-                    providerId: provider.providerId,
+                    providerId: provider.providerName,
                     apiKey: apiKey.trim(),
                   });
                   setApiKeyValidation(result);
@@ -147,7 +147,7 @@ export function AiModelProviderDetail(props: AiModelProviderDetailProps) {
                     await updateProvider.mutateAsync({ id: provider.id, apiKey });
                     setIsApiKeyDirty(false);
                   }
-                  await fetchModels.mutateAsync(provider.providerId);
+                  await fetchModels.mutateAsync(provider.id);
                 }}
               >
                 <RefreshCcwIcon className={fetchModels.isPending ? "animate-spin" : undefined} />
@@ -171,8 +171,8 @@ export function AiModelProviderDetail(props: AiModelProviderDetailProps) {
                   isDeleting={deleteModel.isPending && deleteModel.variables?.id === model.id}
                   onMove={(direction) => changePosition.mutate({ id: model.id, direction })}
                   onToggleEnabled={(enabled) => updateModel.mutate({ id: model.id, enabled })}
-                  onUpdateModelId={async (modelId) => {
-                    await updateModel.mutateAsync({ id: model.id, modelId });
+                  onUpdateModelName={async (modelName) => {
+                    await updateModel.mutateAsync({ id: model.id, modelName });
                   }}
                   onDelete={async () => {
                     await deleteModel.mutateAsync({ id: model.id });
@@ -194,9 +194,9 @@ type ModelRowProps = {
   isMoving: boolean;
   isUpdating: boolean;
   isDeleting: boolean;
-  onMove: (direction: ChangePositionDirection) => void;
+  onMove: (direction: ChangeAIModelPositionRequest["direction"]) => void;
   onToggleEnabled: (enabled: boolean) => void;
-  onUpdateModelId: (modelId: string) => Promise<void>;
+  onUpdateModelName: (modelName: string) => Promise<void>;
   onDelete: () => Promise<void>;
 };
 
@@ -210,7 +210,7 @@ function ModelRow(props: ModelRowProps) {
     isDeleting,
     onMove,
     onToggleEnabled,
-    onUpdateModelId,
+    onUpdateModelName,
     onDelete,
   } = props;
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -218,7 +218,7 @@ function ModelRow(props: ModelRowProps) {
 
   return (
     <div className="flex items-center gap-2 rounded-xl p-2 hover:bg-muted">
-      <p className="min-w-0 flex-1 truncate text-sm font-medium">{model.modelId}</p>
+      <p className="min-w-0 flex-1 truncate text-sm font-medium">{model.modelName}</p>
       <div className="flex items-center gap-0.5">
         <Button
           variant="ghost"
@@ -264,14 +264,14 @@ function ModelRow(props: ModelRowProps) {
       <EditModelDialog
         open={isEditOpen}
         onOpenChange={setIsEditOpen}
-        modelId={model.modelId}
+        modelName={model.modelName}
         isSaving={isUpdating}
-        onSave={onUpdateModelId}
+        onSave={onUpdateModelName}
       />
       <DeleteModelAlert
         open={isDeleteOpen}
         onOpenChange={setIsDeleteOpen}
-        modelId={model.modelId}
+        modelName={model.modelName}
         isDeleting={isDeleting}
         onConfirm={onDelete}
       />

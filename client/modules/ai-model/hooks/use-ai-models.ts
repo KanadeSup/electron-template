@@ -7,7 +7,7 @@ const LOG_SCOPE = "useAIModels";
 export type UseAIModelsParams = {
   enabled?: boolean;
   search?: string;
-  providerId?: string;
+  providerName?: string;
 };
 
 export function useAIModels(params: UseAIModelsParams) {
@@ -22,7 +22,7 @@ export function useAIModels(params: UseAIModelsParams) {
       const res = await getAIModels({
         enabled: params.enabled,
         search: params.search,
-        providerId: params.providerId,
+        providerName: params.providerName,
       });
       if (!res.success) {
         Logger.scope(LOG_SCOPE).error(res.errorMessage ?? "Unknown error");

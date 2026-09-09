@@ -6,16 +6,16 @@ import log from "electron-log/main";
 import started from "electron-squirrel-startup";
 import {
   changeAIModelPositionChannel,
-  changeAIProviderPositionChannel,
   deleteAIModelChannel,
   getAIModelsChannel,
-  getAIProvidersChannel,
   updateAIModelChannel,
-  updateAIProviderChannel,
 } from "./modules/ai-model/ai-model.channel";
 import {
+  changeAIProviderPositionChannel,
   checkAPIKeyChannel,
   fetchModelByProviderChannel,
+  getAIProvidersChannel,
+  updateAIProviderChannel,
 } from "./modules/ai-model/ai-provider.channel";
 import { BaseError } from "./modules/common/errors/base.error";
 import type { BaseChannel } from "./modules/common/ipc-channel/base-channel";

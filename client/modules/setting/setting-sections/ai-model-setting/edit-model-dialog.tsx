@@ -13,24 +13,24 @@ import { useEffect, useState } from "react";
 export type EditModelDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  modelId: string;
+  modelName: string;
   isSaving: boolean;
-  onSave: (modelId: string) => Promise<void>;
+  onSave: (modelName: string) => Promise<void>;
 };
 
 export function EditModelDialog(props: EditModelDialogProps) {
-  const { open, onOpenChange, modelId, isSaving, onSave } = props;
-  const [modelIdValue, setModelIdValue] = useState(modelId);
-  const trimmedModelId = modelIdValue.trim();
-  const canSave = trimmedModelId.length > 0 && trimmedModelId !== modelId;
+  const { open, onOpenChange, modelName, isSaving, onSave } = props;
+  const [modelNameValue, setModelNameValue] = useState(modelName);
+  const trimmedModelName = modelNameValue.trim();
+  const canSave = trimmedModelName.length > 0 && trimmedModelName !== modelName;
 
   useEffect(() => {
-    if (open) setModelIdValue(modelId);
-  }, [open, modelId]);
+    if (open) setModelNameValue(modelName);
+  }, [open, modelName]);
 
   async function handleSave() {
     if (!canSave) return;
-    await onSave(trimmedModelId);
+    await onSave(trimmedModelName);
     onOpenChange(false);
   }
 
@@ -39,12 +39,12 @@ export function EditModelDialog(props: EditModelDialogProps) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit model</DialogTitle>
-          <DialogDescription>Update the model id used for this provider.</DialogDescription>
+          <DialogDescription>Update the model name used for this provider.</DialogDescription>
         </DialogHeader>
         <Input
-          value={modelIdValue}
-          placeholder="Model id"
-          onChange={(event) => setModelIdValue(event.target.value)}
+          value={modelNameValue}
+          placeholder="Model name"
+          onChange={(event) => setModelNameValue(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               event.preventDefault();

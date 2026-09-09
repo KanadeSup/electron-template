@@ -3,24 +3,24 @@ import { ApiKeyService } from "@main/modules/ai-model/services/api-key.service";
 import Logger from "electron-log/main.js";
 import { KeyNotFoundError } from "../errors/key-not-found.error";
 import type {
+  ClientOptions,
   GenerateTextInput,
   GenerateTextOptions,
   GenerateTextStreamOutput,
   ModelResponse,
-  ProviderOptions,
   SendChatMessageOptions,
   ValidateApiKeyResponse,
-} from "../types/provider.type";
-import type { LLMProvider } from "./llm-provider.inteface";
+} from "../types/llm-client.type";
+import type { LLMClient } from "./llm-provider.inteface";
 
-const SCOPE = "GeminiProvider";
+const SCOPE = "GeminiClient";
 
-export class GeminiProvider implements LLMProvider {
+export class GeminiClient implements LLMClient {
   readonly name = "gemini" as const;
   private readonly client: GoogleGenAI;
   private readonly apiKeyService = new ApiKeyService();
 
-  constructor(options: ProviderOptions) {
+  constructor(options: ClientOptions) {
     const apiKey = options.apiKey && options.apiKey.length > 0 ? options.apiKey : this.getApiKey();
 
     if (!apiKey) {
@@ -158,13 +158,13 @@ export class GeminiProvider implements LLMProvider {
       if (!model.name.startsWith("models/")) continue;
       if (!model.supportedActions?.includes("generateContent")) continue;
       modelList.push({
-        modelId: model.name.split("/")[1],
+        modelName: model.name.split("/")[1],
       });
     }
     return modelList;
   }
 
   getApiKey(): string | null {
-    return this.apiKeyService.getApiKeyByProviderId("gemini");
+    return this.apiKeyService.getApiKeyByProviderName("gemini");
   }
 }

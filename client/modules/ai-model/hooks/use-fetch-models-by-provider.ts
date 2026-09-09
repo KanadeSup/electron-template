@@ -9,7 +9,7 @@ export function useFetchModelsByProvider() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (providerId: string) => {
+    mutationFn: async (providerId: number) => {
       const response = await fetchModelsByProvider({ providerId });
       if (!response.success) {
         Logger.scope(LOG_SCOPE).error(response.errorMessage ?? "Failed to fetch provider models");

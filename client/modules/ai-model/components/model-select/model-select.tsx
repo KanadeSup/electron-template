@@ -51,7 +51,7 @@ export function ModelSelect(props: ModelSelectProps) {
             <ScrollArea className="max-h-80">
               <div className="flex flex-col gap-2">
                 {providers.map((provider) => {
-                  const ProviderIcon = getProviderIcon(provider.providerId) ?? BotIcon;
+                  const ProviderIcon = getProviderIcon(provider.providerName) ?? BotIcon;
                   return (
                     <div
                       key={provider.id}
@@ -62,7 +62,7 @@ export function ModelSelect(props: ModelSelectProps) {
                     >
                       <div className="flex items-center gap-2">
                         <ProviderIcon className="w-4 h-4" />
-                        <p className="text-muted-foreground">{provider.providerName}</p>
+                        <p className="text-muted-foreground">{provider.providerLabel}</p>
                       </div>
                       <div className="flex flex-col gap-0.5">
                         {provider.models.map((model) => (
@@ -71,11 +71,11 @@ export function ModelSelect(props: ModelSelectProps) {
                             className={cn(
                               "flex flex-col cursor-pointer mt-1",
                               "hover:bg-muted/80 p-1.5 rounded-md",
-                              selectedModel === model.modelId && "bg-muted/80",
+                              selectedModel === model.modelName && "bg-muted/80",
                             )}
-                            onClick={() => onChange?.(model.modelId)}
+                            onClick={() => onChange?.(model.modelName)}
                           >
-                            <p>{model.modelId}</p>
+                            <p>{model.modelName}</p>
                           </div>
                         ))}
                       </div>

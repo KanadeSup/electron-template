@@ -6,7 +6,7 @@ import { getProviderIcon } from "@client/modules/ai-model/utils/ai-model.util";
 import { Button } from "@client/modules/design-system/components/shadcn-ui/button";
 import { ScrollArea } from "@client/modules/design-system/components/shadcn-ui/scroll-area";
 import { Switch } from "@client/modules/design-system/components/shadcn-ui/switch";
-import type { ChangePositionDirection } from "@shared/contracts/ai-model.contract";
+import type { ChangeAIProviderPositionRequest } from "@shared/contracts/ai-provider.contract";
 import { cn } from "cn";
 import { BotIcon, ChevronDownIcon, ChevronUpIcon, RefreshCcwIcon } from "lucide-react";
 import { useState } from "react";
@@ -78,14 +78,14 @@ type ProviderRowProps = {
   isMoving: boolean;
   isUpdating: boolean;
   onSelect: () => void;
-  onMove: (direction: ChangePositionDirection) => void;
+  onMove: (direction: ChangeAIProviderPositionRequest["direction"]) => void;
   onToggleEnabled: (enabled: boolean) => void;
 };
 
 function ProviderRow(props: ProviderRowProps) {
   const { provider, isFirst, isLast, isMoving, isUpdating, onSelect, onMove, onToggleEnabled } =
     props;
-  const ProviderIcon = getProviderIcon(provider.providerId) ?? BotIcon;
+  const ProviderIcon = getProviderIcon(provider.providerName) ?? BotIcon;
 
   return (
     <div
@@ -97,7 +97,7 @@ function ProviderRow(props: ProviderRowProps) {
       onClick={onSelect}
     >
       <ProviderIcon className="w-4 h-4" />
-      <p className="min-w-0 flex-1 truncate font-medium">{provider.providerName}</p>
+      <p className="min-w-0 flex-1 truncate font-medium">{provider.providerLabel}</p>
       <div className="flex items-center gap-0.5" onClick={(event) => event.stopPropagation()}>
         <Button
           variant="secondary"

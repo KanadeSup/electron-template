@@ -1,34 +1,34 @@
 import { invoke } from "@client/modules/design-system/api/ipc-base";
 import {
   CHANGE_AIMODEL_POSITION_CHANNEL_NAME,
-  CHANGE_AIPROVIDER_POSITION_CHANNEL_NAME,
   type ChangeAIModelPositionRequest,
   type ChangeAIModelPositionResponse,
-  type ChangeAIProviderPositionRequest,
-  type ChangeAIProviderPositionResponse,
   DELETE_AIMODEL_CHANNEL_NAME,
   type DeleteAIModelRequest,
   type DeleteAIModelResponse,
   GET_AIMODELS_CHANNEL_NAME,
-  GET_AIPROVIDERS_CHANNEL_NAME,
   type GetAIModelsRequest,
   type GetAIModelsResponse,
-  type GetAIProvidersRequest,
-  type GetAIProvidersResponse,
   UPDATE_AIMODEL_CHANNEL_NAME,
-  UPDATE_AIPROVIDER_CHANNEL_NAME,
   type UpdateAIModelRequest,
   type UpdateAIModelResponse,
-  type UpdateAIProviderRequest,
-  type UpdateAIProviderResponse,
 } from "@shared/contracts/ai-model.contract";
 import {
+  CHANGE_AIPROVIDER_POSITION_CHANNEL_NAME,
   CHECK_API_KEY_CHANNEL_NAME,
+  type ChangeAIProviderPositionRequest,
+  type ChangeAIProviderPositionResponse,
   type CheckAPIKeyRequest,
   type CheckAPIKeyResponse,
   FETCH_MODEL_BY_PROVIDER_CHANNEL_NAME,
   type FetchModelByProviderRequest,
   type FetchModelByProviderResponse,
+  GET_AIPROVIDERS_CHANNEL_NAME,
+  type GetAIProvidersRequest,
+  type GetAIProvidersResponse,
+  UPDATE_AIPROVIDER_CHANNEL_NAME,
+  type UpdateAIProviderRequest,
+  type UpdateAIProviderResponse,
 } from "@shared/contracts/ai-provider.contract";
 
 export async function getAIModels(params: GetAIModelsRequest) {

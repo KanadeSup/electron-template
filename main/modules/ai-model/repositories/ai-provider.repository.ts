@@ -5,13 +5,13 @@ import type {
   AIProviderOutputDto,
   GetAIProviderInputDto,
   GetAIProvidersOutputDto,
-  SortOrderItemDto,
   UpdateAIProviderInputDto,
-} from "../dto/ai-model.dto";
+} from "../dto/ai-provider.dto";
+import type { SortOrderItemDto } from "../dto/sort.dto";
 
 const aiProviderSchema = z.object({
   id: z.number(),
-  providerId: z.string(),
+  providerLabel: z.string(),
   providerName: z.string(),
   enabled: z.coerce.boolean(),
   apiKey: z.string(),
@@ -24,8 +24,8 @@ export class AIProviderRepository {
   getAIProviders(dto: GetAIProviderInputDto): GetAIProvidersOutputDto {
     const result = this.db
       .prepare(`
-        SELECT id, provider_id, provider_name, enabled, api_key, sort_order
-        FROM ai_providers
+        SELECT id, provider_label, provider_name, enabled, api_key, sort_order
+        FROM providers
         WHERE 1 = 1
           ${dto.enabled !== undefined ? `AND enabled = ${dto.enabled}` : ""}
       `)
@@ -37,8 +37,8 @@ export class AIProviderRepository {
   getAIProviderById(id: number): AIProviderOutputDto | null {
     const result = this.db
       .prepare(`
-        SELECT id, provider_id, provider_name, enabled, api_key, sort_order
-        FROM ai_providers
+        SELECT id, provider_label, provider_name, enabled, api_key, sort_order
+        FROM providers
         WHERE id = ?
       `)
       .get(id);
@@ -47,14 +47,14 @@ export class AIProviderRepository {
     return parseSchema(result, aiProviderSchema);
   }
 
-  getAIProviderByProviderId(providerId: string): AIProviderOutputDto | null {
+  getAIProviderByName(providerName: string): AIProviderOutputDto | null {
     const result = this.db
       .prepare(`
-        SELECT id, provider_id, provider_name, enabled, api_key, sort_order
-        FROM ai_providers
-        WHERE provider_id = ?
+        SELECT id, provider_label, provider_name, enabled, api_key, sort_order
+        FROM providers
+        WHERE provider_name = ?
       `)
-      .get(providerId);
+      .get(providerName);
 
     if (result === undefined) return null;
     return parseSchema(result, aiProviderSchema);
@@ -68,7 +68,7 @@ export class AIProviderRepository {
 
     const result = this.db
       .prepare(`
-        UPDATE ai_providers
+        UPDATE providers
         SET 
           ${dto.enabled !== undefined ? `enabled = ${dto.enabled}` : ""} 
           ${dto.apiKey !== undefined ? `api_key = '${dto.apiKey.trim()}'` : ""}
@@ -82,7 +82,7 @@ export class AIProviderRepository {
 
   updateAIProviderSortOrders(items: SortOrderItemDto[]): void {
     const statement = this.db.prepare(`
-      UPDATE ai_providers
+      UPDATE providers
       SET sort_order = ?
       WHERE id = ?
     `);
@@ -96,7 +96,7 @@ export class AIProviderRepository {
     updateMany(items);
   }
 
-  getAPIKeyByProviderId(providerId: string): string {
+  getAPIKeyByProviderName(providerName: string): string {
     const schema = z.object({
       apiKey: z.string(),
     });
@@ -104,10 +104,10 @@ export class AIProviderRepository {
     const result = this.db
       .prepare(`
         SELECT api_key
-        FROM ai_providers
-        WHERE provider_id = ?
+        FROM providers
+        WHERE provider_name = ?
       `)
-      .get(providerId);
+      .get(providerName);
 
     return parseSchema(result, schema).apiKey;
   }

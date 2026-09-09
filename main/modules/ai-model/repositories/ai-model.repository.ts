@@ -6,15 +6,16 @@ import type {
   CreateAIModelInputDto,
   GetAIModelsInputDto,
   GetAIModelsOutputDto,
-  SortOrderItemDto,
   UpdateAIModelInputDto,
 } from "../dto/ai-model.dto";
+import type { SortOrderItemDto } from "../dto/sort.dto";
 
 const aiModelSchema = z.object({
   id: z.number(),
-  modelId: z.string(),
+  modelName: z.string(),
   enabled: z.coerce.boolean(),
-  providerId: z.string(),
+  providerId: z.number(),
+  providerName: z.string(),
   sortOrder: z.number(),
 });
 
@@ -24,14 +25,14 @@ export class AIModelRepository {
   getAIModels(dto: GetAIModelsInputDto): GetAIModelsOutputDto {
     const result = this.db
       .prepare(`
-        SELECT m.id, m.model_id, m.enabled, m.sort_order, p.provider_id
+        SELECT m.id, m.model_name, m.enabled, m.sort_order, m.provider_id, p.provider_name
         FROM ai_models m
-        JOIN ai_providers p ON m.ai_provider_id = p.id
+        JOIN providers p ON m.provider_id = p.id
         WHERE
           1 = 1
-          ${dto.providerId ? `AND provider_id = '${dto.providerId}'` : ""}
+          ${dto.providerName ? `AND provider_name = '${dto.providerName}'` : ""}
           ${dto.enabled !== undefined ? `AND enabled = ${dto.enabled}` : ""}
-          ${dto.search ? `AND model_id LIKE '%${dto.search}%'` : ""}
+          ${dto.search ? `AND model_name LIKE '%${dto.search}%'` : ""}
       `)
       .all();
 
@@ -41,9 +42,9 @@ export class AIModelRepository {
   getAIModelById(id: number): AIModelOutputDto | null {
     const result = this.db
       .prepare(`
-        SELECT m.id, m.model_id, m.enabled, m.sort_order, p.provider_id
+        SELECT m.id, m.model_name, m.enabled, m.sort_order, m.provider_id, p.provider_name
         FROM ai_models m
-        JOIN ai_providers p ON m.ai_provider_id = p.id
+        JOIN providers p ON m.provider_id = p.id
         WHERE m.id = ${id}
       `)
       .get();
@@ -53,7 +54,7 @@ export class AIModelRepository {
   }
 
   updateAIModel(dto: UpdateAIModelInputDto): AIModelOutputDto | null {
-    if (dto.modelId === undefined && dto.enabled === undefined) {
+    if (dto.modelName === undefined && dto.enabled === undefined) {
       return null;
     }
 
@@ -61,7 +62,7 @@ export class AIModelRepository {
       .prepare(`
         UPDATE ai_models
         SET 
-          ${dto.modelId !== undefined ? `model_id = ${dto.modelId}` : ""} 
+          ${dto.modelName !== undefined ? `model_name = ${dto.modelName}` : ""} 
           ${dto.enabled !== undefined ? `enabled = ${dto.enabled}` : ""}
         WHERE id = ${dto.id}
       `)
@@ -117,46 +118,37 @@ export class AIModelRepository {
 
   createAIModels(models: CreateAIModelInputDto[]): void {
     const schema = z.object({
-      aiProviderId: z.number(),
-      providerId: z.string(),
-      sortOrder: z.number(),
+      providerId: z.number(),
+      modelSortOrder: z.number(),
     });
 
-    const providerIds = models.map((model) => model.providerId);
+    const providerIds = [...new Set(models.map((model) => model.providerId))];
     const result = this.db
       .prepare(`
-        SELECT ai_provider_id, provider_id, MAX(model.sort_order) AS sort_order
-        FROM ai_models model
-        JOIN ai_providers provider ON model.ai_provider_id = provider.id
-        WHERE provider.provider_id IN ( ${providerIds.map(() => "?").join(", ")} )
-        GROUP BY provider.provider_id, model.ai_provider_id
+        SELECT provider_id, MAX(sort_order) AS model_sort_order
+        FROM ai_models
+        WHERE provider_id IN (${providerIds.join(",")})
+        GROUP BY provider_id
       `)
-      .all(providerIds);
+      .all();
 
     const parsedResult = parseSchema(result, schema.array());
 
     const sortOrderByProviderId = Object.fromEntries(
-      parsedResult.map((item) => [item.providerId, item.sortOrder]),
-    );
-    const aiProviderIdByProviderId = Object.fromEntries(
-      parsedResult.map((item) => [item.providerId, item.aiProviderId]),
+      parsedResult.map((item) => [item.providerId, item.modelSortOrder]),
     );
 
-    this.db.transaction(() => {
+    this.db.transaction((models: CreateAIModelInputDto[]) => {
       for (const model of models) {
-        let sortOrder = 0;
-        if (sortOrderByProviderId[model.providerId] != null) {
-          sortOrder = sortOrderByProviderId[model.providerId] + 1;
-        }
-        const aiProviderId = aiProviderIdByProviderId[model.providerId];
+        const sortOrder = sortOrderByProviderId[model.providerId] + 1;
         const result = this.db
           .prepare(`
-            INSERT INTO ai_models (model_id, ai_provider_id, sort_order) 
-            VALUES ('${model.modelId}', '${aiProviderId}', ${sortOrder})
+            INSERT INTO ai_models (model_name, provider_id, sort_order) 
+            VALUES ('${model.modelName}', ${model.providerId}, ${sortOrder})
             WHERE NOT EXISTS (
               SELECT 1 
               FROM ai_models 
-              WHERE model_id = '${model.modelId}' AND ai_provider_id = '${aiProviderId}')
+              WHERE model_name = '${model.modelName}' AND provider_id = ${model.providerId})
           `)
           .run();
         if (result.changes > 0) {

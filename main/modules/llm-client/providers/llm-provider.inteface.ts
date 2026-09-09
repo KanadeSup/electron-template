@@ -5,9 +5,9 @@ import type {
   ModelResponse,
   SendChatMessageOptions,
   ValidateApiKeyResponse,
-} from "../types/provider.type";
+} from "../types/llm-client.type";
 
-export interface LLMProvider {
+export interface LLMClient {
   readonly name: string;
 
   generateText(input: GenerateTextInput, options: GenerateTextOptions): Promise<string>;

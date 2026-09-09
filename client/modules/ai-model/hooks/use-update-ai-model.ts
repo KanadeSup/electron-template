@@ -7,7 +7,7 @@ const LOG_SCOPE = "useUpdateAIModel";
 
 export type UseUpdateAIModelParams = {
   id: number;
-  modelId?: string;
+  modelName?: string;
   enabled?: boolean;
 };
 

@@ -1,4 +1,4 @@
-export type ProviderOptions = {
+export type ClientOptions = {
   /** If not provided, the API key will be retrieved from the API key storage */
   apiKey?: string;
 };
@@ -38,5 +38,5 @@ export type ValidateApiKeyResponse = {
 };
 
 export type ModelResponse = {
-  modelId: string;
+  modelName: string;
 };

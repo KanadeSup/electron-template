@@ -35,7 +35,7 @@ export function useAIProviders(params: UseAIProvidersParams) {
 
       return providersResponse.data.map((provider) => ({
         ...provider,
-        models: modelsResponse.data.filter((model) => model.providerId === provider.providerId),
+        models: modelsResponse.data.filter((model) => model.providerId === provider.id),
       }));
     },
   });

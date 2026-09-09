@@ -1,20 +1,14 @@
 import { BadRequestError, NotFoundError } from "@main/modules/common/errors/common.error";
-import { LLMProviderFactory } from "@main/modules/llm/factories/provider.factory";
-import type { ChangePositionDirection } from "@shared/contracts/ai-model.contract";
+import { moveItemByDirection } from "@main/modules/common/utils/sort.util";
+import { LLMClientFactory } from "@main/modules/llm-client/factories/llm-client.factory";
 import type {
   AIModelOutputDto,
-  AIProviderOutputDto,
   ChangeAIModelPositionInputDto,
-  ChangeAIProviderPositionInputDto,
   DeleteAIModelInputDto,
   FetchModelByProviderOutputDto,
   GetAIModelsInputDto,
   GetAIModelsOutputDto,
-  GetAIProviderInputDto,
-  GetAIProvidersOutputDto,
-  SortOrderItemDto,
   UpdateAIModelInputDto,
-  UpdateAIProviderInputDto,
 } from "../dto/ai-model.dto";
 import { AIModelRepository } from "../repositories/ai-model.repository";
 import { AIProviderRepository } from "../repositories/ai-provider.repository";
@@ -23,133 +17,91 @@ export class AIModelService {
   private readonly aiModelRepository = new AIModelRepository();
   private readonly aiProviderRepository = new AIProviderRepository();
 
-  async getAIProviders(dto: GetAIProviderInputDto): Promise<GetAIProvidersOutputDto> {
-    return this.aiProviderRepository.getAIProviders(dto);
-  }
-
   async getAIModels(dto: GetAIModelsInputDto): Promise<GetAIModelsOutputDto> {
     return this.aiModelRepository.getAIModels(dto);
   }
 
-  async updateAIProvider(dto: UpdateAIProviderInputDto): Promise<AIProviderOutputDto> {
-    const provider = await this.aiProviderRepository.updateAIProvider(dto);
-    if (!provider) {
-      throw new NotFoundError("AI provider not found");
-    }
-    return provider;
-  }
-
-  async changeAIProviderPosition(dto: ChangeAIProviderPositionInputDto): Promise<void> {
-    const providers = await this.aiProviderRepository.getAIProviders({});
-    const currentOrderedProviders = providers.sort((a, b) => a.sortOrder - b.sortOrder);
-    const reordered = this.moveItemByDirection(
-      currentOrderedProviders,
-      dto.id,
-      dto.direction,
-      "AI provider not found",
-    );
-    await this.aiProviderRepository.updateAIProviderSortOrders(this.toSortOrderItems(reordered));
-  }
-
-  async updateAIModel(dto: UpdateAIModelInputDto): Promise<AIModelOutputDto> {
-    if (dto.modelId === undefined && dto.enabled === undefined) {
+  updateAIModel(dto: UpdateAIModelInputDto): AIModelOutputDto {
+    if (dto.modelName === undefined && dto.enabled === undefined) {
       throw new BadRequestError("No fields to update");
     }
 
-    const modelId = dto.modelId !== undefined ? dto.modelId.trim() : undefined;
-    if (modelId !== undefined && modelId.length === 0) {
-      throw new BadRequestError("Model id must not be empty");
+    const modelName = dto.modelName !== undefined ? dto.modelName.trim() : undefined;
+    if (modelName !== undefined && modelName.length === 0) {
+      throw new BadRequestError("Model name must not be empty");
     }
 
-    const model = await this.aiModelRepository.updateAIModel({
+    const model = this.aiModelRepository.updateAIModel({
       id: dto.id,
       enabled: dto.enabled,
-      modelId,
+      modelName,
     });
-    if (!model) {
-      throw new NotFoundError("AI model not found");
-    }
+    if (!model) throw new NotFoundError("AI model not found");
     return model;
   }
 
-  async changeAIModelPosition(dto: ChangeAIModelPositionInputDto): Promise<void> {
-    const model = await this.aiModelRepository.getAIModelById(dto.id);
+  changeAIModelPosition(dto: ChangeAIModelPositionInputDto): void {
+    const model = this.aiModelRepository.getAIModelById(dto.id);
     if (!model) {
       throw new NotFoundError("AI model not found");
     }
 
-    const models = await this.aiModelRepository.getAIModels({ providerId: model.providerId });
+    const models = this.aiModelRepository.getAIModels({ providerName: model.providerName });
     const currentOrderedModels = models.sort((a, b) => a.sortOrder - b.sortOrder);
-    const reordered = this.moveItemByDirection(
-      currentOrderedModels,
-      dto.id,
-      dto.direction,
-      "AI model not found",
+
+    const movedIndex = currentOrderedModels.findIndex((m) => m.id === dto.id);
+    if (movedIndex === -1) {
+      throw new NotFoundError("AI model not found");
+    }
+
+    const result = moveItemByDirection(currentOrderedModels, movedIndex, dto.direction);
+    if (!result.success) {
+      throw new BadRequestError(result.errorMessage);
+    }
+    const reordered = result.reordered;
+    this.aiModelRepository.updateAIModelSortOrders(
+      reordered.map((model, index) => ({
+        id: model.id,
+        sortOrder: index,
+      })),
     );
-    await this.aiModelRepository.updateAIModelSortOrders(this.toSortOrderItems(reordered));
   }
 
-  async deleteAIModel(dto: DeleteAIModelInputDto): Promise<void> {
-    const deleted = await this.aiModelRepository.deleteAIModel(dto.id);
+  deleteAIModel(dto: DeleteAIModelInputDto): void {
+    const deleted = this.aiModelRepository.deleteAIModel(dto.id);
     if (!deleted) {
       throw new NotFoundError("AI model not found");
     }
   }
 
-  async fetchModelByProvider(providerId: string): Promise<FetchModelByProviderOutputDto> {
-    const provider = this.aiProviderRepository.getAIProviderByProviderId(providerId);
+  async fetchModelByProvider(providerId: number): Promise<FetchModelByProviderOutputDto> {
+    const provider = this.aiProviderRepository.getAIProviderById(providerId);
     if (!provider) throw new NotFoundError("AI provider not found");
 
-    const llmProviderFactory = new LLMProviderFactory();
-    const llmProvider = llmProviderFactory.getProvider(provider.providerId, {});
-    const fetchedModels = await llmProvider.getModelList();
-    const currentModels = this.aiModelRepository.getAIModels({ providerId });
+    const llmClientFactory = new LLMClientFactory();
+    const llmClient = llmClientFactory.getClient(provider.providerName, {});
+
+    const fetchedModels = await llmClient.getModelList();
+    const currentModels = this.aiModelRepository.getAIModels({
+      providerName: provider.providerName,
+    });
 
     const modelsToCreate = fetchedModels
-      .filter((model) => !currentModels.some((m) => m.modelId === model.modelId))
-      .map((model) => model.modelId);
-    const modelsToDelete = currentModels
-      .filter((model) => !fetchedModels.some((m) => m.modelId === model.modelId))
+      .filter((model) => !currentModels.some((m) => m.modelName === model.modelName))
+      .map((model) => model.modelName);
+    const modelIdsToDelete = currentModels
+      .filter((model) => !fetchedModels.some((m) => m.modelName === model.modelName))
       .map((model) => model.id);
 
-    this.aiModelRepository.deleteAIModelsByIds(modelsToDelete);
+    this.aiModelRepository.deleteAIModelsByIds(modelIdsToDelete);
 
     this.aiModelRepository.createAIModels(
       modelsToCreate.map((model) => ({
-        modelId: model,
+        modelName: model,
         providerId,
       })),
     );
 
-    return this.aiModelRepository.getAIModels({ providerId });
-  }
-
-  private moveItemByDirection<T extends { id: number }>(
-    items: T[],
-    id: number,
-    direction: ChangePositionDirection,
-    notFoundMessage: string,
-  ): T[] {
-    const currentIndex = items.findIndex((item) => item.id === id);
-    if (currentIndex === -1) throw new NotFoundError(notFoundMessage);
-
-    const targetIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
-    if (targetIndex < 0 || targetIndex >= items.length) {
-      throw new BadRequestError("Cannot move item further in this direction");
-    }
-
-    const reordered = [...items];
-    const movedItem = reordered.splice(currentIndex, 1)[0];
-    if (!movedItem) throw new BadRequestError("Cannot move item further in this direction");
-
-    reordered.splice(targetIndex, 0, movedItem);
-    return reordered;
-  }
-
-  private toSortOrderItems(items: { id: number }[]): SortOrderItemDto[] {
-    return items.map((item, index) => ({
-      id: item.id,
-      sortOrder: index,
-    }));
+    return this.aiModelRepository.getAIModels({ providerName: provider.providerName });
   }
 }
