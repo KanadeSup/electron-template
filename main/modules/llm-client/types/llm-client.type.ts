@@ -8,6 +8,8 @@ export type GenerateTextOptions = {
   maxTokens?: number;
   thinkingLevel?: "minimal" | "low" | "medium" | "high" | "extreme";
   systemInstruction?: string;
+  // biome-ignore lint/suspicious/noExplicitAny: Because the history is different for each client
+  history?: any;
 };
 
 export type GenerateTextInput = string;
@@ -24,13 +26,9 @@ export type GenerateTextStreamOutput =
       inputTokens?: number;
       outputTokens?: number;
       thinkingTokens?: number;
+      // biome-ignore lint/suspicious/noExplicitAny: Because the history is different for each client
+      history?: any;
     };
-
-export type SendChatMessageOptions = {
-  model: string;
-  systemInstruction?: string;
-  previousConversationId?: string;
-};
 
 export type ValidateApiKeyResponse = {
   valid: boolean;

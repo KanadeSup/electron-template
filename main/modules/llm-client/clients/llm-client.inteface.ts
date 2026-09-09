@@ -3,7 +3,6 @@ import type {
   GenerateTextOptions,
   GenerateTextStreamOutput,
   ModelResponse,
-  SendChatMessageOptions,
   ValidateApiKeyResponse,
 } from "../types/llm-client.type";
 
@@ -15,11 +14,6 @@ export interface LLMClient {
   generateTextStream(
     input: GenerateTextInput,
     options: GenerateTextOptions,
-  ): AsyncGenerator<GenerateTextStreamOutput>;
-
-  sendChatMessage(
-    message: string,
-    options: SendChatMessageOptions,
   ): AsyncGenerator<GenerateTextStreamOutput>;
 
   validateAPIKey(apiKey: string): Promise<ValidateApiKeyResponse>;

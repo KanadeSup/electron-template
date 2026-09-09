@@ -8,7 +8,6 @@ import type {
   GenerateTextOptions,
   GenerateTextStreamOutput,
   ModelResponse,
-  SendChatMessageOptions,
   ValidateApiKeyResponse,
 } from "../types/llm-client.type";
 import type { LLMClient } from "./llm-client.inteface";
@@ -76,13 +75,22 @@ export class GeminiClient implements LLMClient {
     input: GenerateTextInput,
     options: GenerateTextOptions,
   ): AsyncGenerator<GenerateTextStreamOutput> {
+    const history = options.history ?? [];
+
     const stream = await this.client.interactions.create({
       model: options.model,
       store: false,
-      input: input,
+      input: [
+        ...history,
+        {
+          type: "user_input",
+          content: { type: "text", text: input },
+        },
+      ],
       stream: true,
       generation_config: {
         max_output_tokens: options.maxTokens,
+        thinking_summaries: "auto",
       },
     });
 
@@ -141,16 +149,10 @@ export class GeminiClient implements LLMClient {
           inputTokens: usage?.total_input_tokens,
           outputTokens: usage?.total_output_tokens,
           thinkingTokens: usage?.total_thought_tokens,
+          history: event.interaction.steps,
         };
       }
     }
-  }
-
-  async *sendChatMessage(
-    message: string,
-    options: SendChatMessageOptions,
-  ): AsyncGenerator<GenerateTextStreamOutput> {
-    yield { type: "thinking.start" };
   }
 
   async validateAPIKey(apiKey: string): Promise<ValidateApiKeyResponse> {
