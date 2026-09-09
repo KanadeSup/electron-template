@@ -113,6 +113,7 @@ class Main {
           if (error instanceof BaseError) {
             if (error.statusCode === IpcResponseStatusCodes.INTERNAL_ERROR) {
               log.error(`Internal error caused by channel: [${channel.name}]`);
+              log.error(error);
               log.error(error.stack);
               log.error("----------------------------");
             }
@@ -127,6 +128,7 @@ class Main {
 
           // unexpected error
           log.error(`Unexpected internal error caused by channel: [${channel.name}]`);
+          log.error(error);
           if (error instanceof Error) {
             log.error(error.stack);
           }

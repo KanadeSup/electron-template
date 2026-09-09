@@ -20,6 +20,33 @@ export class GeminiClient implements LLMClient {
   private readonly client: GoogleGenAI;
   private readonly apiKeyService = new ApiKeyService();
 
+  readonly excludedModelKeywords = [
+    // Audio model
+    "-tts",
+    "-audio",
+    "-live",
+    "-transcribe",
+
+    // Embedding model
+    "-embedding",
+    "-robotics",
+
+    // Video model
+    "-omni",
+    "veo-",
+
+    // Image model
+    "-image",
+    "imagen-",
+
+    // Music model
+    "lyria-",
+
+    // Tool model
+    "-computer",
+    "customtools",
+  ];
+
   constructor(options: ClientOptions) {
     const apiKey = options.apiKey && options.apiKey.length > 0 ? options.apiKey : this.getApiKey();
 
@@ -145,23 +172,29 @@ export class GeminiClient implements LLMClient {
 
   async getModelList(): Promise<ModelResponse[]> {
     Logger.scope(SCOPE).info("Getting model list ...");
-    const models = await this.client.models.list();
-    const maxItems = models.pageSize;
-    const totalItems = models.pageLength;
-    Logger.scope(SCOPE).info(`Found ${totalItems} models`, { totalItems, maxItems });
+    const listResult = await this.client.models.list();
+    const firstPageModels = listResult.page;
+    const secondPageModels = await listResult.nextPage();
+    const models = [...firstPageModels, ...secondPageModels];
+
+    Logger.scope(SCOPE).info(`Found ${models.length} models`);
 
     const modelList: ModelResponse[] = [];
-    for (let i = 0; i < totalItems; i += 1) {
-      const model = models.getItem(i);
-      if (!model) break;
-      if (!model.name) continue;
-      if (!model.name.startsWith("models/")) continue;
-      if (!model.supportedActions?.includes("generateContent")) continue;
+    models.forEach((model) => {
+      if (!model.name?.startsWith("models/")) return;
+      if (!model.supportedActions?.includes("generateContent")) return;
+
+      const modelName = model.name.split("/")[1];
+
+      // Filter by model name
+      if (!modelName.startsWith("gemini-")) return;
+      if (this.excludedModelKeywords.some((keyword) => modelName.includes(keyword))) return;
+
       modelList.push({
-        modelName: model.name.split("/")[1],
+        modelName,
       });
-    }
-    return modelList;
+    });
+    return modelList.sort((a, b) => b.modelName.localeCompare(a.modelName));
   }
 
   getApiKey(): string | null {
