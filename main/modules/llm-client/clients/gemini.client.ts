@@ -11,7 +11,7 @@ import type {
   SendChatMessageOptions,
   ValidateApiKeyResponse,
 } from "../types/llm-client.type";
-import type { LLMClient } from "./llm-provider.inteface";
+import type { LLMClient } from "./llm-client.inteface";
 
 const SCOPE = "GeminiClient";
 

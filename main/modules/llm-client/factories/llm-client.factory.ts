@@ -1,5 +1,5 @@
-import { GeminiClient } from "../providers/gemini.provider";
-import type { LLMClient } from "../providers/llm-provider.inteface";
+import { GeminiClient } from "../clients/gemini.client";
+import type { LLMClient } from "../clients/llm-client.inteface";
 import type { ClientOptions } from "../types/llm-client.type";
 
 export class LLMClientFactory {
