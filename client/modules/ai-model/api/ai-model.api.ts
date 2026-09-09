@@ -22,6 +22,14 @@ import {
   type UpdateAIProviderRequest,
   type UpdateAIProviderResponse,
 } from "@shared/contracts/ai-model.contract";
+import {
+  CHECK_API_KEY_CHANNEL_NAME,
+  type CheckAPIKeyRequest,
+  type CheckAPIKeyResponse,
+  FETCH_MODEL_BY_PROVIDER_CHANNEL_NAME,
+  type FetchModelByProviderRequest,
+  type FetchModelByProviderResponse,
+} from "@shared/contracts/ai-provider.contract";
 
 export async function getAIModels(params: GetAIModelsRequest) {
   return invoke<GetAIModelsRequest, GetAIModelsResponse>(GET_AIMODELS_CHANNEL_NAME, params);
@@ -61,4 +69,15 @@ export async function changeAIModelPosition(params: ChangeAIModelPositionRequest
 
 export async function deleteAIModel(params: DeleteAIModelRequest) {
   return invoke<DeleteAIModelRequest, DeleteAIModelResponse>(DELETE_AIMODEL_CHANNEL_NAME, params);
+}
+
+export async function checkAPIKey(params: CheckAPIKeyRequest) {
+  return invoke<CheckAPIKeyRequest, CheckAPIKeyResponse>(CHECK_API_KEY_CHANNEL_NAME, params);
+}
+
+export async function fetchModelsByProvider(params: FetchModelByProviderRequest) {
+  return invoke<FetchModelByProviderRequest, FetchModelByProviderResponse>(
+    FETCH_MODEL_BY_PROVIDER_CHANNEL_NAME,
+    params,
+  );
 }

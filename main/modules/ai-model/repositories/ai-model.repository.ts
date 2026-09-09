@@ -29,7 +29,7 @@ export class AIModelRepository {
         JOIN ai_providers p ON m.ai_provider_id = p.id
         WHERE
           1 = 1
-          ${dto.providerId ? `AND provider_id = ${dto.providerId}` : ""}
+          ${dto.providerId ? `AND provider_id = '${dto.providerId}'` : ""}
           ${dto.enabled !== undefined ? `AND enabled = ${dto.enabled}` : ""}
           ${dto.search ? `AND model_id LIKE '%${dto.search}%'` : ""}
       `)
@@ -117,6 +117,7 @@ export class AIModelRepository {
 
   createAIModels(models: CreateAIModelInputDto[]): void {
     const schema = z.object({
+      aiProviderId: z.number(),
       providerId: z.string(),
       sortOrder: z.number(),
     });
@@ -124,32 +125,43 @@ export class AIModelRepository {
     const providerIds = models.map((model) => model.providerId);
     const result = this.db
       .prepare(`
-        SELECT provider_id, MAX(sort_order) AS sort_order
-        FROM ai_models
-        WHERE provider_id IN (${providerIds.join(",")})
-        GROUP BY provider_id
+        SELECT ai_provider_id, provider_id, MAX(model.sort_order) AS sort_order
+        FROM ai_models model
+        JOIN ai_providers provider ON model.ai_provider_id = provider.id
+        WHERE provider.provider_id IN ( ${providerIds.map(() => "?").join(", ")} )
+        GROUP BY provider.provider_id, model.ai_provider_id
       `)
-      .all();
+      .all(providerIds);
 
-    const lastestModelSortOrders = parseSchema(result, schema.array());
+    const parsedResult = parseSchema(result, schema.array());
 
     const sortOrderByProviderId = Object.fromEntries(
-      lastestModelSortOrders.map((item) => [item.providerId, item.sortOrder]),
+      parsedResult.map((item) => [item.providerId, item.sortOrder]),
+    );
+    const aiProviderIdByProviderId = Object.fromEntries(
+      parsedResult.map((item) => [item.providerId, item.aiProviderId]),
     );
 
     this.db.transaction(() => {
       for (const model of models) {
-        const sortOrder = sortOrderByProviderId[model.providerId] + 1;
-        this.db
+        let sortOrder = 0;
+        if (sortOrderByProviderId[model.providerId] != null) {
+          sortOrder = sortOrderByProviderId[model.providerId] + 1;
+        }
+        const aiProviderId = aiProviderIdByProviderId[model.providerId];
+        const result = this.db
           .prepare(`
-            INSERT INTO ai_models (model_id, provider_id, sort_order) 
-            VALUES (${model.modelId}  , ${model.providerId}, ${sortOrder})
+            INSERT INTO ai_models (model_id, ai_provider_id, sort_order) 
+            VALUES ('${model.modelId}', '${aiProviderId}', ${sortOrder})
             WHERE NOT EXISTS (
               SELECT 1 
               FROM ai_models 
-              WHERE model_id = ${model.modelId} AND provider_id = ${model.providerId})
+              WHERE model_id = '${model.modelId}' AND ai_provider_id = '${aiProviderId}')
           `)
           .run();
+        if (result.changes > 0) {
+          sortOrderByProviderId[model.providerId] = sortOrder;
+        }
       }
     });
   }

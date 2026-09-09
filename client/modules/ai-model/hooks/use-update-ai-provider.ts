@@ -19,7 +19,7 @@ export function useUpdateAIProvider() {
       const response = await updateAIProvider(params);
       if (!response.success) {
         Logger.scope(LOG_SCOPE).error(response.errorMessage ?? "Failed to update provider");
-        throw new Error(response.errorMessage ?? "Failed to update provider");
+        throw new Error("Failed to update provider");
       }
       return response.data;
     },

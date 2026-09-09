@@ -17,7 +17,7 @@ export function useDeleteAIModel() {
       const response = await deleteAIModel(params);
       if (!response.success) {
         Logger.scope(LOG_SCOPE).error(response.errorMessage ?? "Failed to delete model");
-        throw new Error(response.errorMessage ?? "Failed to delete model");
+        throw new Error("Failed to delete model");
       }
       return response.data;
     },

@@ -26,7 +26,7 @@ export function useAIModels(params: UseAIModelsParams) {
       });
       if (!res.success) {
         Logger.scope(LOG_SCOPE).error(res.errorMessage ?? "Unknown error");
-        throw new Error(res.errorMessage ?? "Unknown error");
+        throw new Error("Unknown error");
       }
       return res.data;
     },

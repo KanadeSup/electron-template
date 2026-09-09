@@ -19,7 +19,7 @@ export function useChangeAIModelPosition() {
       const response = await changeAIModelPosition(params);
       if (!response.success) {
         Logger.scope(LOG_SCOPE).error(response.errorMessage ?? "Failed to change model position");
-        throw new Error(response.errorMessage ?? "Failed to change model position");
+        throw new Error("Failed to change model position");
       }
       return response.data;
     },

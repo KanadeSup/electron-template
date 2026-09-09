@@ -19,7 +19,7 @@ export function useUpdateAIModel() {
       const response = await updateAIModel(params);
       if (!response.success) {
         Logger.scope(LOG_SCOPE).error(response.errorMessage ?? "Failed to update model");
-        throw new Error(response.errorMessage ?? "Failed to update model");
+        throw new Error("Failed to update model");
       }
       return response.data;
     },

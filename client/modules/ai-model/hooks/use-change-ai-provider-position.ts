@@ -21,7 +21,7 @@ export function useChangeAIProviderPosition() {
         Logger.scope(LOG_SCOPE).error(
           response.errorMessage ?? "Failed to change provider position",
         );
-        throw new Error(response.errorMessage ?? "Failed to change provider position");
+        throw new Error("Failed to change provider position");
       }
       return response.data;
     },

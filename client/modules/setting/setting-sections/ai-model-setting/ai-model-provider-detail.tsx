@@ -1,5 +1,7 @@
 import { useChangeAIModelPosition } from "@client/modules/ai-model/hooks/use-change-ai-model-position";
+import { useCheckAPIKey } from "@client/modules/ai-model/hooks/use-check-api-key";
 import { useDeleteAIModel } from "@client/modules/ai-model/hooks/use-delete-ai-model";
+import { useFetchModelsByProvider } from "@client/modules/ai-model/hooks/use-fetch-models-by-provider";
 import { useUpdateAIModel } from "@client/modules/ai-model/hooks/use-update-ai-model";
 import { useUpdateAIProvider } from "@client/modules/ai-model/hooks/use-update-ai-provider";
 import type { AIModel, AIProviderWithModels } from "@client/modules/ai-model/types/ai-model.type";
@@ -9,14 +11,17 @@ import { PasswordInput } from "@client/modules/design-system/components/shadcn-u
 import { ScrollArea } from "@client/modules/design-system/components/shadcn-ui/scroll-area";
 import { Switch } from "@client/modules/design-system/components/shadcn-ui/switch";
 import type { ChangePositionDirection } from "@shared/contracts/ai-model.contract";
+import type { CheckAPIKeyResponse } from "@shared/contracts/ai-provider.contract";
 import {
   BotIcon,
+  CheckIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronUpIcon,
   PencilIcon,
   RefreshCcwIcon,
   Trash2Icon,
+  XIcon,
 } from "lucide-react";
 import { useState } from "react";
 import { DeleteModelAlert } from "./delete-model-alert";
@@ -33,7 +38,10 @@ export function AiModelProviderDetail(props: AiModelProviderDetailProps) {
   const models = [...provider.models].sort((a, b) => a.sortOrder - b.sortOrder);
   const [apiKey, setApiKey] = useState(provider.apiKey);
   const [isApiKeyDirty, setIsApiKeyDirty] = useState(false);
+  const [apiKeyValidation, setApiKeyValidation] = useState<CheckAPIKeyResponse | null>(null);
   const updateProvider = useUpdateAIProvider();
+  const checkAPIKey = useCheckAPIKey();
+  const fetchModels = useFetchModelsByProvider();
   const updateModel = useUpdateAIModel();
   const changePosition = useChangeAIModelPosition();
   const deleteModel = useDeleteAIModel();
@@ -55,6 +63,8 @@ export function AiModelProviderDetail(props: AiModelProviderDetailProps) {
             <p className="text-sm text-muted-foreground">
               {getProviderApiKeyDescription(provider.providerName)}
             </p>
+
+            {/* API key input */}
             <PasswordInput
               value={apiKey}
               placeholder="Enter API key"
@@ -72,15 +82,80 @@ export function AiModelProviderDetail(props: AiModelProviderDetailProps) {
                 );
               }}
             />
+
+            <div>
+              {/* Validate button */}
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={apiKey.trim().length === 0 || checkAPIKey.isPending}
+                onClick={async () => {
+                  const result = await checkAPIKey.mutateAsync({
+                    providerId: provider.providerId,
+                    apiKey: apiKey.trim(),
+                  });
+                  setApiKeyValidation(result);
+                }}
+              >
+                <RefreshCcwIcon className={checkAPIKey.isPending ? "animate-spin" : undefined} />
+                Validate API key
+              </Button>
+
+              {/* Validate result */}
+              {apiKeyValidation && (
+                <div className="flex flex-col gap-1 mt-2 p-2 bg-black/50 rounded-xl w-full">
+                  {/* Validate result header */}
+                  <div className="flex items-center justify-between">
+                    {apiKeyValidation.valid ? (
+                      <p className="flex items-center gap-1 text-sm text-green-600 font-bold">
+                        <CheckIcon className="w-4 h-4 stroke-3" />
+                        API key is valid.
+                      </p>
+                    ) : (
+                      <p className="flex items-center gap-1 text-sm text-destructive font-bold">
+                        <XIcon className="stroke-3 w-4 h-4" />
+                        API key is invalid.
+                      </p>
+                    )}
+                    <Button variant="ghost" size="icon" onClick={() => setApiKeyValidation(null)}>
+                      <XIcon className="stroke-3" />
+                    </Button>
+                  </div>
+
+                  {/* Validate error message */}
+                  {apiKeyValidation.valid === false && (
+                    <div className="p-3 rounded-lg bg-card border border-destructive">
+                      <p className={"flex items-center gap-1 text-sm text-destructive break-all"}>
+                        {apiKeyValidation.message ?? "API key is invalid."}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </section>
 
           <section className="flex flex-col gap-2 rounded-xl border border-input bg-sidebar p-3">
             <div className="flex items-center justify-between">
               <p className="text-base font-semibold">Models</p>
-              <Button variant="ghost" size="icon-sm">
-                <RefreshCcwIcon />
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                disabled={fetchModels.isPending || updateProvider.isPending}
+                onClick={async () => {
+                  if (isApiKeyDirty) {
+                    await updateProvider.mutateAsync({ id: provider.id, apiKey });
+                    setIsApiKeyDirty(false);
+                  }
+                  await fetchModels.mutateAsync(provider.providerId);
+                }}
+              >
+                <RefreshCcwIcon className={fetchModels.isPending ? "animate-spin" : undefined} />
               </Button>
             </div>
+            {fetchModels.isError && (
+              <p className="text-sm text-destructive">{fetchModels.error.message}</p>
+            )}
             {models.length === 0 && (
               <p className="text-sm text-muted-foreground">No models added yet.</p>
             )}

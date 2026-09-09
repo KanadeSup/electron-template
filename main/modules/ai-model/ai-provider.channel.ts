@@ -15,7 +15,7 @@ export const checkAPIKeyChannel = createChannel<CheckAPIKeyRequest, CheckAPIKeyR
   handle: async (request) => {
     const { providerId, apiKey } = request;
     const providerFactory = new LLMProviderFactory();
-    const provider = providerFactory.getProvider(providerId, {});
+    const provider = providerFactory.getProvider(providerId, { apiKey });
     const validateResult = await provider.validateAPIKey(apiKey);
     return validateResult;
   },

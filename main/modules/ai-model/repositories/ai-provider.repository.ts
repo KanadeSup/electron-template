@@ -105,9 +105,9 @@ export class AIProviderRepository {
       .prepare(`
         SELECT api_key
         FROM ai_providers
-        WHERE provider_id = ${providerId}
+        WHERE provider_id = ?
       `)
-      .get();
+      .get(providerId);
 
     return parseSchema(result, schema).apiKey;
   }

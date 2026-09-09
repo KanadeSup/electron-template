@@ -25,7 +25,7 @@ export function useAIProviders(params: UseAIProvidersParams) {
         Logger.scope(LOG_SCOPE).error(
           providersResponse.errorMessage ?? "Failed to fetch providers",
         );
-        throw new Error(providersResponse.errorMessage ?? "Failed to fetch providers");
+        throw new Error("Failed to fetch providers");
       }
 
       if (!modelsResponse.success) {
