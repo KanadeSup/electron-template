@@ -15,12 +15,14 @@ import type {
   UpdateAIProviderInputDto,
 } from "../dto/ai-model.dto";
 import { AIModelRepository } from "../repositories/ai-model.repository";
+import { AIProviderRepository } from "../repositories/ai-provider.repository";
 
 export class AIModelService {
-  private readonly aiModelRepository: AIModelRepository = new AIModelRepository();
+  private readonly aiModelRepository = new AIModelRepository();
+  private readonly aiProviderRepository = new AIProviderRepository();
 
   async getAIProviders(dto: GetAIProviderInputDto): Promise<GetAIProvidersOutputDto> {
-    return this.aiModelRepository.getAIProviders(dto);
+    return this.aiProviderRepository.getAIProviders(dto);
   }
 
   async getAIModels(dto: GetAIModelsInputDto): Promise<GetAIModelsOutputDto> {
@@ -28,7 +30,7 @@ export class AIModelService {
   }
 
   async updateAIProvider(dto: UpdateAIProviderInputDto): Promise<AIProviderOutputDto> {
-    const provider = await this.aiModelRepository.updateAIProvider(dto);
+    const provider = await this.aiProviderRepository.updateAIProvider(dto);
     if (!provider) {
       throw new NotFoundError("AI provider not found");
     }
@@ -36,7 +38,7 @@ export class AIModelService {
   }
 
   async changeAIProviderPosition(dto: ChangeAIProviderPositionInputDto): Promise<void> {
-    const providers = await this.aiModelRepository.getAIProviders({});
+    const providers = await this.aiProviderRepository.getAIProviders({});
     const currentOrderedProviders = providers.sort((a, b) => a.sortOrder - b.sortOrder);
     const reordered = this.moveItemByDirection(
       currentOrderedProviders,
@@ -44,7 +46,7 @@ export class AIModelService {
       dto.direction,
       "AI provider not found",
     );
-    await this.aiModelRepository.updateAIProviderSortOrders(this.toSortOrderItems(reordered));
+    await this.aiProviderRepository.updateAIProviderSortOrders(this.toSortOrderItems(reordered));
   }
 
   async updateAIModel(dto: UpdateAIModelInputDto): Promise<AIModelOutputDto> {

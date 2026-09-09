@@ -3,24 +3,11 @@ import { parseSchema } from "@main/modules/database/utils/sql-result.util";
 import { z } from "zod";
 import type {
   AIModelOutputDto,
-  AIProviderOutputDto,
   GetAIModelsInputDto,
   GetAIModelsOutputDto,
-  GetAIProviderInputDto,
-  GetAIProvidersOutputDto,
   SortOrderItemDto,
   UpdateAIModelInputDto,
-  UpdateAIProviderInputDto,
 } from "../dto/ai-model.dto";
-
-const aiProviderSchema = z.object({
-  id: z.number(),
-  providerId: z.string(),
-  providerName: z.string(),
-  enabled: z.coerce.boolean(),
-  apiKey: z.string(),
-  sortOrder: z.number(),
-});
 
 const aiModelSchema = z.object({
   id: z.number(),
@@ -32,68 +19,6 @@ const aiModelSchema = z.object({
 
 export class AIModelRepository {
   private readonly db = sqliteDatabase.getDb();
-
-  async getAIProviders(dto: GetAIProviderInputDto): Promise<GetAIProvidersOutputDto> {
-    const result = this.db
-      .prepare(`
-        SELECT id, provider_id, provider_name, enabled, api_key, sort_order
-        FROM ai_providers
-        WHERE 1 = 1
-          ${dto.enabled !== undefined ? `AND enabled = ${dto.enabled}` : ""}
-      `)
-      .all();
-
-    return parseSchema(result, aiProviderSchema.array());
-  }
-
-  async getAIProviderById(id: number): Promise<AIProviderOutputDto | null> {
-    const result = this.db
-      .prepare(`
-        SELECT id, provider_id, provider_name, enabled, api_key, sort_order
-        FROM ai_providers
-        WHERE id = ?
-      `)
-      .get(id);
-
-    if (result === undefined) return null;
-    return parseSchema(result, aiProviderSchema);
-  }
-
-  async updateAIProvider(dto: UpdateAIProviderInputDto): Promise<AIProviderOutputDto | null> {
-    // If there is any field to update, return immediately
-    if (dto.enabled === undefined && dto.apiKey === undefined) {
-      return null;
-    }
-
-    const result = this.db
-      .prepare(`
-        UPDATE ai_providers
-        SET 
-          ${dto.enabled !== undefined ? `enabled = ${dto.enabled}` : ""} 
-          ${dto.apiKey !== undefined ? `api_key = '${dto.apiKey.trim()}'` : ""}
-        WHERE id = ${dto.id}
-      `)
-      .run();
-
-    if (result.changes === 0) return null;
-    return this.getAIProviderById(dto.id);
-  }
-
-  async updateAIProviderSortOrders(items: SortOrderItemDto[]): Promise<void> {
-    const statement = this.db.prepare(`
-      UPDATE ai_providers
-      SET sort_order = ?
-      WHERE id = ?
-    `);
-
-    const updateMany = this.db.transaction((rows: SortOrderItemDto[]) => {
-      for (const row of rows) {
-        statement.run(row.sortOrder, row.id);
-      }
-    });
-
-    updateMany(items);
-  }
 
   async getAIModels(dto: GetAIModelsInputDto): Promise<GetAIModelsOutputDto> {
     const result = this.db
