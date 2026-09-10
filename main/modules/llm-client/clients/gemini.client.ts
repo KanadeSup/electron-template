@@ -80,13 +80,7 @@ export class GeminiClient implements LLMClient {
     const stream = await this.client.interactions.create({
       model: options.model,
       store: false,
-      input: [
-        ...history,
-        {
-          type: "user_input",
-          content: { type: "text", text: input },
-        },
-      ],
+      input: input,
       stream: true,
       generation_config: {
         max_output_tokens: options.maxTokens,

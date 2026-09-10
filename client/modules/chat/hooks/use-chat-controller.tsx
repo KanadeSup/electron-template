@@ -1,13 +1,14 @@
 import { toast } from "@client/modules/design-system/components/shadcn-ui/toast";
 import type { ConversationMessage } from "@shared/contracts/message.contract";
 import Logger from "electron-log";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import {
   createConversation as createConversationApi,
   getConversationById,
 } from "../api/conversation.api";
 import { onSendMessageEvent, sendMessage as sendMessageApi } from "../api/message.api";
 import type { DisplayAssistantMessage, DisplayMessage } from "../types/message.type";
+import { type ConversationMemory, useConversationMemories } from "./use-conversation-memories";
 
 const SCOPE = "useChatController";
 
@@ -19,21 +20,11 @@ export type SendMessageOptions = {
   model: string;
 };
 
-type ConversationId = number;
-type ConversationMemories = Record<ConversationId, ConversationMemory>;
-type ConversationMemory = {
-  /** Whether the conversation is ready to be used */
-  isReady: boolean;
-  messages: DisplayMessage[];
-};
-
 export function useChatController(params: ChatControllerParams) {
   const { conversationId } = params;
 
-  const [conversationMemories, setConversationMemories] = useState<ConversationMemories>({});
-  const cachedConversationIdsRef = useRef<number[]>([]);
-
-  cachedConversationIdsRef.current = Object.keys(conversationMemories).map(Number);
+  const { conversationMemories, conversationMemoriesRef, upsertConversationMemory } =
+    useConversationMemories();
 
   const displayMessages = useMemo(() => {
     if (!conversationId) return [];
@@ -50,13 +41,10 @@ export function useChatController(params: ChatControllerParams) {
 
     // Create a new conversation memory to prevent
     // system from calling api to load the conversation
-    setConversationMemories((prev) => ({
-      ...prev,
-      [conversationId]: {
-        isReady: true,
-        messages: [],
-      },
-    }));
+    upsertConversationMemory(conversationId, {
+      isReady: true,
+      messages: [],
+    });
 
     return conversationId;
   };
@@ -66,13 +54,16 @@ export function useChatController(params: ChatControllerParams) {
     message: string,
     options: SendMessageOptions,
   ) => {
-    const conversationMemory = conversationMemories[conversationId];
-    if (!conversationMemory) return;
-    if (!conversationMemory.isReady) return;
+    const conversationMemory = conversationMemoriesRef.current[conversationId];
+    if (!conversationMemory?.isReady) return;
 
     // Lock the conversation immediately and wait for
     // the streaming finish to unlock it
-    conversationMemory.isReady = false;
+    upsertConversationMemory(conversationId, {
+      isReady: false,
+      messages: conversationMemory.messages,
+    });
+
     const response = await sendMessageApi({
       conversationId,
       message,
@@ -81,13 +72,11 @@ export function useChatController(params: ChatControllerParams) {
 
     if (!response.success) {
       // Unlock the conversation immediately if failed
-      setConversationMemories((prev) => ({
-        ...prev,
-        [conversationId]: {
-          ...prev[conversationId],
-          isReady: true,
-        },
-      }));
+      const currentMessages = conversationMemoriesRef.current[conversationId].messages;
+      upsertConversationMemory(conversationId, {
+        isReady: true,
+        messages: currentMessages,
+      });
       Logger.scope(SCOPE).error("Failed to send message", response.errorMessage);
       toast.add({
         type: "error",
@@ -99,11 +88,15 @@ export function useChatController(params: ChatControllerParams) {
     }
   };
 
-  // Load conversation when the conversationId changes
+  /*
+   *  biome-ignore lint/correctness/useExhaustiveDependencies: conversationMemoriesRef is react ref object
+   *  which is not necessary to be included in the dependencies array
+   */
   useEffect(() => {
+    // Load conversation when the conversationId changes
     async function loadConversation() {
       if (!conversationId) return;
-      if (conversationMemories[conversationId]) return;
+      if (conversationMemoriesRef.current[conversationId]?.isReady) return;
       const resp = await getConversationById({
         conversationId,
       });
@@ -125,93 +118,103 @@ export function useChatController(params: ChatControllerParams) {
           .map((message) => toDisplayMessage(message))
           .filter((message) => message !== null),
       };
-      setConversationMemories((prev) => ({
-        // The memory should only keep the last 5 conversations to avoid memory leaks
-        ...Object.fromEntries(Object.entries(prev).slice(-4)),
-        [conversationId]: conversationMemory,
-      }));
+      upsertConversationMemory(conversationId, conversationMemory);
     }
     loadConversation();
-  }, [conversationId, conversationMemories]);
+  }, [conversationId, upsertConversationMemory]);
 
-  const addDisplayMessage = useCallback((conversationId: number, message: DisplayMessage) => {
-    setConversationMemories((prev) => ({
-      ...prev,
-      [conversationId]: {
-        ...prev[conversationId],
-        messages: [...prev[conversationId].messages, message],
-      },
-    }));
-  }, []);
+  /*
+   *  biome-ignore lint/correctness/useExhaustiveDependencies: conversationMemoriesRef is react ref object
+   *  which is not necessary to be included in the dependencies array
+   */
+  const addDisplayMessage = useCallback(
+    (conversationId: number, message: DisplayMessage) => {
+      const conversationMemory = conversationMemoriesRef.current[conversationId];
+      if (!conversationMemory) return;
 
+      upsertConversationMemory(conversationId, {
+        isReady: conversationMemory.isReady,
+        messages: [...conversationMemory.messages, message],
+      });
+    },
+    [upsertConversationMemory],
+  );
+
+  /*
+   *  biome-ignore lint/correctness/useExhaustiveDependencies: conversationMemoriesRef is react ref object
+   *  which is not necessary to be included in the dependencies array
+   */
   const updateGeneratingMessage = useCallback(
     (conversationId: number, type: "assistant" | "think", message: DisplayAssistantMessage) => {
-      setConversationMemories((prev) => {
-        const newMessages = prev[conversationId].messages.map((m) => {
-          if (m.type === type && m.isGenerating) {
-            return { ...message };
-          }
-          return m;
-        });
-        return {
-          ...prev,
-          [conversationId]: {
-            ...prev[conversationId],
-            messages: newMessages,
-          },
-        };
+      const conversationMemory = conversationMemoriesRef.current[conversationId];
+      if (!conversationMemory) return;
+
+      const newMessages = conversationMemory.messages.map((m) => {
+        if (m.type === type && m.isGenerating) {
+          return { ...message };
+        }
+        return m;
+      });
+      upsertConversationMemory(conversationId, {
+        isReady: conversationMemory.isReady,
+        messages: newMessages,
       });
     },
-    [],
+    [upsertConversationMemory],
   );
 
+  /*
+   *  biome-ignore lint/correctness/useExhaustiveDependencies: conversationMemoriesRef is react ref object
+   *  which is not necessary to be included in the dependencies array
+   */
   const appendContentToGeneratingMessage = useCallback(
     (conversationId: number, type: "assistant" | "think", chunk: string) => {
-      setConversationMemories((prev) => {
-        const newMessages = prev[conversationId].messages.map((m) => {
-          if (m.type === type && m.isGenerating) {
-            return { ...m, content: m.content + chunk };
-          }
-          return m;
-        });
-        return {
-          ...prev,
-          [conversationId]: {
-            ...prev[conversationId],
-            messages: newMessages,
-          },
-        };
+      const conversationMemory = conversationMemoriesRef.current[conversationId];
+      if (!conversationMemory) return;
+
+      const newMessages = conversationMemory.messages.map((m) => {
+        if (m.type === type && m.isGenerating) {
+          return { ...m, content: m.content + chunk };
+        }
+        return m;
+      });
+      upsertConversationMemory(conversationId, {
+        isReady: conversationMemory.isReady,
+        messages: newMessages,
       });
     },
-    [],
+    [upsertConversationMemory],
   );
 
+  /*
+   *  biome-ignore lint/correctness/useExhaustiveDependencies: conversationMemoriesRef is react ref object
+   *  which is not necessary to be included in the dependencies array
+   */
   const removeGeneratingMessage = useCallback(
     (conversationId: number, type: "assistant" | "think") => {
-      setConversationMemories((prev) => {
-        const newMessages = prev[conversationId].messages.filter(
-          (m) => m.type !== type || !m.isGenerating,
-        );
-        return {
-          ...prev,
-          [conversationId]: {
-            ...prev[conversationId],
-            messages: newMessages,
-          },
-        };
+      const conversationMemory = conversationMemoriesRef.current[conversationId];
+      if (!conversationMemory) return;
+
+      const newMessages = conversationMemory.messages.filter(
+        (m) => m.type !== type || !m.isGenerating,
+      );
+
+      upsertConversationMemory(conversationId, {
+        isReady: conversationMemory.isReady,
+        messages: newMessages,
       });
     },
-    [],
+    [upsertConversationMemory],
   );
 
-  // stream message events
+  /*
+   *  biome-ignore lint/correctness/useExhaustiveDependencies: conversationMemoriesRef is react ref object
+   *  which is not necessary to be included in the dependencies array
+   */
   useEffect(() => {
     const unsubscribe = onSendMessageEvent((response) => {
-      const cachedConversationIds = cachedConversationIdsRef.current;
-      if (!cachedConversationIds.includes(response.conversationId)) {
-        Logger.scope(SCOPE).error("Conversation not cached", response.conversationId);
-        return;
-      }
+      const conversationMemory = conversationMemoriesRef.current[response.conversationId];
+      if (!conversationMemory) return;
 
       switch (response.type) {
         case "event.start":
@@ -282,13 +285,10 @@ export function useChatController(params: ChatControllerParams) {
           });
           break;
         case "event.end":
-          setConversationMemories((prev) => ({
-            ...prev,
-            [response.conversationId]: {
-              ...prev[response.conversationId],
-              isReady: true,
-            },
-          }));
+          upsertConversationMemory(response.conversationId, {
+            isReady: true,
+            messages: conversationMemory.messages,
+          });
           break;
       }
     });
