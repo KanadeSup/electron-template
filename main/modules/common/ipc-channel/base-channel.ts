@@ -1,13 +1,20 @@
 export type BaseChannel<ReqT, ResT> = {
+  type: "base";
   name: string;
   handle: (req: ReqT) => Promise<ResT>;
 };
 
-export function createChannel<ReqT, ResT>(params: BaseChannel<ReqT, ResT>) {
-  return params;
+export function createChannel<ReqT, ResT>(
+  params: Omit<BaseChannel<ReqT, ResT>, "type">,
+): BaseChannel<ReqT, ResT> {
+  return {
+    type: "base",
+    ...params,
+  };
 }
 
 export type EventChannel<ReqT, ResT> = {
+  type: "event";
   name: string;
   handle: (event: Electron.IpcMainInvokeEvent, req: ReqT) => Promise<ResT>;
 };
@@ -22,6 +29,7 @@ export function createSenderChannel<ReqT, ResT>(
   params: SenderChannel<ReqT, ResT>,
 ): EventChannel<ReqT, ResT> {
   return {
+    type: "event",
     name: params.name,
     handle: (event, req) => {
       const sender = createEventSender(event.sender);

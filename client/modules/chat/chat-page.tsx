@@ -1,8 +1,10 @@
 import { useNavigate, useParams } from "react-router";
 import { AssistantSelect } from "../assistant/components/assistant-select/assistant-select";
 import { AppLayout } from "../design-system/components/app-layout/app-layout";
+import { ScrollArea } from "../design-system/components/shadcn-ui/scroll-area";
 import { toast } from "../design-system/components/shadcn-ui/toast";
 import { ChatInput } from "./components/chat-input/chat-input";
+import { ChatMessageList } from "./components/chat-message-list/chat-message-list";
 import { useChatController } from "./hooks/use-chat-controller";
 
 export function ChatPage() {
@@ -39,7 +41,10 @@ export function ChatPage() {
       <div className="w-full">
         <AssistantSelect />
       </div>
-      <div className="w-full flex-1 flex flex-col justify-center items-center">
+      <ScrollArea className="flex-1">
+        <ChatMessageList messages={chatController.displayMessages} />
+      </ScrollArea>
+      <div className="w-full flex flex-col justify-center items-center">
         <div className="w-[70%]">
           <ChatInput placeholder="Ask me anything..." onSubmit={handleSubmit} />
         </div>

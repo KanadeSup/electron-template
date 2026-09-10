@@ -43,7 +43,7 @@ export function useChatController(params: ChatControllerParams) {
   const createConversation = async () => {
     const response = await createConversationApi();
     if (!response.success) {
-      Logger.error(SCOPE, response.errorMessage || "Error creating conversation");
+      Logger.scope(SCOPE).error(response.errorMessage || "Error creating conversation");
       return null;
     }
     const conversationId = response.data.conversationId;
@@ -88,7 +88,7 @@ export function useChatController(params: ChatControllerParams) {
           isReady: true,
         },
       }));
-      Logger.error(SCOPE, "Failed to send message", response.errorMessage);
+      Logger.scope(SCOPE).error("Failed to send message", response.errorMessage);
       toast.add({
         type: "error",
         title: "Error sending message",
@@ -108,7 +108,7 @@ export function useChatController(params: ChatControllerParams) {
         conversationId,
       });
       if (!resp.success) {
-        Logger.error(SCOPE, "Error getting conversation", resp.errorMessage);
+        Logger.scope(SCOPE).error("Error getting conversation", resp.errorMessage);
         toast.add({
           type: "error",
           title: "Error getting conversation",
@@ -209,7 +209,7 @@ export function useChatController(params: ChatControllerParams) {
     const unsubscribe = onSendMessageEvent((response) => {
       const cachedConversationIds = cachedConversationIdsRef.current;
       if (!cachedConversationIds.includes(response.conversationId)) {
-        Logger.error(SCOPE, "Conversation not cached", response.conversationId);
+        Logger.scope(SCOPE).error("Conversation not cached", response.conversationId);
         return;
       }
 

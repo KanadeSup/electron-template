@@ -18,7 +18,7 @@ import {
   updateAIProviderChannel,
 } from "./modules/ai-model/ai-provider.channel";
 import { BaseError } from "./modules/common/errors/base.error";
-import type { BaseChannel } from "./modules/common/ipc-channel/base-channel";
+import type { BaseChannel, EventChannel } from "./modules/common/ipc-channel/base-channel";
 import {
   createConversationChannel,
   deleteConversationChannel,
@@ -30,6 +30,7 @@ import {
   deleteMessageChannel,
   getMessageByIdChannel,
   getMessageListChannel,
+  sendMessageChannel,
 } from "./modules/conversation/message.channel";
 import { sqliteDatabase } from "./modules/database/sqlite-database";
 import { sayHelloChannel } from "./modules/hello/hello.channel";
@@ -48,7 +49,7 @@ if (started) {
 
 class Main {
   // biome-ignore lint/suspicious/noExplicitAny: ipcChannels is a list of channels that will be registered
-  public init(ipcChannels?: BaseChannel<any, any>[]): void {
+  public init(ipcChannels?: (BaseChannel<any, any> | EventChannel<any, any>)[]): void {
     this.overrideAppDataPath();
 
     app.whenReady().then(async () => {
@@ -113,13 +114,21 @@ class Main {
     }
   }
 
-  private registerIpcChannels(ipcChannels: BaseChannel<unknown, unknown>[]): void {
+  private registerIpcChannels(
+    ipcChannels: (BaseChannel<unknown, unknown> | EventChannel<unknown, unknown>)[],
+  ): void {
     ipcChannels.forEach((channel) => {
-      ipcMain.handle(channel.name, async (_, request): Promise<IpcChannelResponse<unknown>> => {
+      ipcMain.handle(channel.name, async (event, request): Promise<IpcChannelResponse<unknown>> => {
         try {
+          let data: unknown = null;
+          if (channel.type === "base") {
+            data = await channel.handle(request);
+          } else if (channel.type === "event") {
+            data = await channel.handle(event, request);
+          }
           return {
             success: true,
-            data: await channel.handle(request),
+            data,
           };
         } catch (error) {
           if (error instanceof BaseError) {
@@ -176,4 +185,5 @@ new Main().init([
   getMessageByIdChannel,
   createMessageChannel,
   deleteMessageChannel,
+  sendMessageChannel,
 ]);

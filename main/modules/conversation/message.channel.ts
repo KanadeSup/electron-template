@@ -102,7 +102,7 @@ export const deleteMessageChannel = createChannel<DeleteMessageRequest, DeleteMe
 export const sendMessageChannel = createSenderChannel<SendMessageRequest, SendMessageResponse>({
   name: SEND_MESSAGE_CHANNEL_NAME,
   handle: async (sender, request) => {
-    const SEND_MESSAGE_CHANNEL_SCOPE = sendMessageChannel.name;
+    const SEND_MESSAGE_CHANNEL_SCOPE = "sendMessageChannel";
     const messageService = new MessageService();
     const modelService = new AIModelService();
 

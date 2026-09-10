@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import type {
   DisplayAssistantMessage,
   DisplayMessage,
@@ -5,9 +6,12 @@ import type {
 } from "../../types/message.type";
 
 type AssistantMessageWithThinking = DisplayAssistantMessage & {
+  type: "assistant";
   isThinking: true;
   thinkingContent: string;
 };
+
+type ChatListItem = DisplayMessage | AssistantMessageWithThinking;
 
 export type ChatMessageListProps = {
   messages: DisplayMessage[];
@@ -15,35 +19,33 @@ export type ChatMessageListProps = {
 
 export function ChatMessageList(props: ChatMessageListProps) {
   const { messages } = props;
+  const listItems = useMemo(() => combineAdjacentThinkAndAssistant(messages), [messages]);
 
   return (
     <div className="flex flex-col gap-2">
-      {messages.map((message) => (
-        <ChatMessageItem key={message.id} message={message} />
+      {listItems.map((message, index) => (
+        <ChatMessageItem key={getListItemKey(message, index)} message={message} />
       ))}
     </div>
   );
 }
 
 type ChatMessageItemProps = {
-  message: DisplayMessage;
+  message: ChatListItem;
 };
 
 function ChatMessageItem(props: ChatMessageItemProps) {
   const { message } = props;
   if (message.type === "user") {
-    return <div>{message.content}</div>;
+    return <UserMessage message={message} />;
   }
   if (message.type === "assistant") {
-    return <AssistantMessage message={message} />;
-  }
-  if (message.type === "think") {
     return <AssistantMessage message={message} />;
   }
   if (message.type === "error") {
     return <div>{message.errorMessage}</div>;
   }
-  return <div>{message.content}</div>;
+  return null;
 }
 
 type UserMessageProps = {
@@ -60,14 +62,62 @@ function UserMessage(props: UserMessageProps) {
 }
 
 type AssistantMessageProps = {
-  message: DisplayAssistantMessage;
+  message: DisplayAssistantMessage | AssistantMessageWithThinking;
 };
 
 function AssistantMessage(props: AssistantMessageProps) {
   const { message } = props;
+  const thinkingContent = isAssistantWithThinking(message) ? message.thinkingContent : undefined;
+
   return (
     <div className="flex justify-start pr-10">
-      <div className="bg-secondary rounded-lg px-4 py-2">{message.content}</div>
+      <div className="bg-secondary flex min-w-0 flex-col gap-2 rounded-lg px-4 py-2">
+        {thinkingContent != null && thinkingContent !== "" && (
+          <div className="text-muted-foreground whitespace-pre-wrap text-sm">{thinkingContent}</div>
+        )}
+        {thinkingContent != null && thinkingContent !== "" && message.content !== "" && (
+          <div className="border-border border-t" />
+        )}
+        {message.content}
+      </div>
     </div>
   );
+}
+
+function combineAdjacentThinkAndAssistant(messages: DisplayMessage[]): ChatListItem[] {
+  const items: ChatListItem[] = [];
+
+  for (let i = 0; i < messages.length - 1; i++) {
+    const current = messages[i];
+    const next = messages[i + 1];
+
+    if (current.type === "think" && next.type === "assistant") {
+      items.push({
+        ...next,
+        type: "assistant",
+        isThinking: true,
+        thinkingContent: current.content,
+      });
+      i += 1;
+      continue;
+    }
+
+    items.push(current);
+  }
+
+  return items;
+}
+
+function isAssistantWithThinking(message: ChatListItem): message is AssistantMessageWithThinking {
+  return message.type === "assistant" && "isThinking" in message && message.isThinking === true;
+}
+
+function getListItemKey(item: ChatListItem, index: number): string {
+  if (isAssistantWithThinking(item)) {
+    return `think-assistant-${item.id ?? `pending-${index}`}`;
+  }
+  if (item.id != null) {
+    return `${item.type}-${item.id}`;
+  }
+  return `${item.type}-pending-${index}`;
 }
