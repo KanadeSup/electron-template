@@ -1,3 +1,4 @@
+import type { ConversationMessageType } from "@shared/types/conversation.type";
 import type { ConversationMessage } from "./message.contract";
 
 // Get conversation list channel
@@ -52,3 +53,73 @@ export type SendMessageRequest = {
 };
 
 export type SendMessageResponse = null;
+
+export type OnSendMessageEventResponse =
+  | {
+      conversationId: number;
+      type: "event.start";
+    }
+  | {
+      conversationId: number;
+      type: "error";
+      errorMessage: ErrorSendMessageResponse;
+    }
+  | {
+      conversationId: number;
+      type: "user-message.created";
+      userMessage: BaseSendMessageResponse<"user">;
+    }
+  | {
+      conversationId: number;
+      type: "thinking.start";
+    }
+  | {
+      conversationId: number;
+      type: "thinking.delta";
+      content: string;
+    }
+  | {
+      conversationId: number;
+      type: "thinking.end";
+      thinkingMessage: BaseSendMessageResponse<"think">;
+    }
+  | {
+      conversationId: number;
+      type: "model-output.start";
+    }
+  | {
+      conversationId: number;
+      type: "model-output.delta";
+      content: string;
+    }
+  | {
+      conversationId: number;
+      type: "model-output.end";
+      assistantMessage: BaseSendMessageResponse<"assistant">;
+    }
+  | {
+      conversationId: number;
+      type: "event.end";
+      data: {
+        inputTokens?: number;
+        outputTokens?: number;
+        thinkingTokens?: number;
+      };
+    };
+
+export type BaseSendMessageResponse<TType extends Omit<ConversationMessageType, "error">> = {
+  id: number;
+  type: TType;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ErrorSendMessageResponse = {
+  id: number;
+  type: "error";
+  errorMessage: string;
+  errorCode: string;
+  createdAt: string;
+  updatedAt: string;
+};

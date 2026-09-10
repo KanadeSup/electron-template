@@ -18,6 +18,9 @@ CREATE TABLE conversation_messages (
   type TEXT NOT NULL,
   content TEXT NOT NULL,
 
+  error_message TEXT DEFAULT NULL,
+  error_code TEXT DEFAULT NULL,
+
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   

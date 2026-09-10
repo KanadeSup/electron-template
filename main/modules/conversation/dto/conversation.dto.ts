@@ -34,9 +34,3 @@ export type GetConversationByIdInputDto = {
 export type DeleteConversationInputDto = {
   conversationId: number;
 };
-
-export type SendMessageInputDto = {
-  conversationId: number;
-  message: string;
-  model: string;
-};

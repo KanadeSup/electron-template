@@ -4,6 +4,8 @@ export type ConversationMessage = {
   id: number;
   type: ConversationMessageType;
   content: string;
+  errorMessage?: string | null;
+  errorCode?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -30,6 +32,8 @@ export type CreateMessageRequest = {
   conversationId: number;
   type: ConversationMessageType;
   content: string;
+  errorMessage?: string | null;
+  errorCode?: string | null;
 };
 
 export type CreateMessageResponse = {

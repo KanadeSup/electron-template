@@ -13,6 +13,8 @@ const messagesSchema = z.object({
   id: z.number(),
   type: messageTypeSchema,
   content: z.string(),
+  errorMessage: z.string().nullable(),
+  errorCode: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -23,7 +25,7 @@ export class MessageRepository {
   getMessageListByConversationId(conversationId: number): ConversationMessageDto[] {
     const result = this.db
       .prepare(`
-        SELECT id, type, content, created_at, updated_at
+        SELECT id, type, content, error_message, error_code, created_at, updated_at
         FROM conversation_messages
         WHERE conversation_id = ${conversationId}
       `)
@@ -37,7 +39,7 @@ export class MessageRepository {
   getMessageById(id: number): ConversationMessageDto | null {
     const result = this.db
       .prepare(`
-        SELECT id, type, content, created_at, updated_at
+        SELECT id, type, content, error_message, error_code, created_at, updated_at
         FROM conversation_messages WHERE id = ${id}
       `)
       .get();
@@ -53,8 +55,14 @@ export class MessageRepository {
     });
     const result = this.db
       .prepare(`
-        INSERT INTO conversation_messages (conversation_id, type, content)
-        VALUES (${message.conversationId}, '${message.type}', '${message.content}')
+        INSERT INTO conversation_messages (conversation_id, type, content, error_message, error_code)
+        VALUES (
+          ${message.conversationId}, 
+          '${message.type}', 
+          '${message.content}', 
+          ${message.errorMessage !== undefined ? `'${message.errorMessage}'` : null}, 
+          ${message.errorCode !== undefined ? `'${message.errorCode}'` : null}
+        )
         RETURNING id
       `)
       .get();
@@ -65,15 +73,18 @@ export class MessageRepository {
   }
 
   updateMessage(id: number, message: UpdateMessageInputDto): boolean {
-    const { content } = message;
-    if (content === undefined) {
+    const { content, errorMessage, errorCode } = message;
+    if (content === undefined && errorMessage === undefined && errorCode === undefined) {
       return false;
     }
 
     const result = this.db
       .prepare(`
         UPDATE conversation_messages 
-        SET content = '${content}' 
+        SET 
+          ${content !== undefined ? `content = '${content}'` : ""}
+          ${errorMessage !== undefined ? `, error_message = '${errorMessage}'` : ""}
+          ${errorCode !== undefined ? `, error_code = '${errorCode}'` : ""}
         WHERE id = ${id}
       `)
       .run();
