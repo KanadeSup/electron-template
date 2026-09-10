@@ -11,6 +11,9 @@ import {
   type GetMessageByIdResponse,
   type GetMessageListRequest,
   type GetMessageListResponse,
+  UPDATE_MESSAGE_CHANNEL_NAME,
+  type UpdateMessageRequest,
+  type UpdateMessageResponse,
 } from "@shared/contracts/message.contract";
 import { NotFoundError } from "../common/errors/common.error";
 import { createChannel } from "../common/ipc-channel/base-channel";
@@ -63,6 +66,16 @@ export const createMessageChannel = createChannel<CreateMessageRequest, CreateMe
     return {
       messageId,
     };
+  },
+});
+
+export const updateMessageChannel = createChannel<UpdateMessageRequest, UpdateMessageResponse>({
+  name: UPDATE_MESSAGE_CHANNEL_NAME,
+  handle: async (request) => {
+    const messageService = new MessageService();
+    const updated = messageService.updateMessage(request.messageId, request.updateData);
+    if (!updated) throw new NotFoundError("Message not found");
+    return null;
   },
 });
 

@@ -40,6 +40,19 @@ export type CreateMessageResponse = {
   messageId: number;
 };
 
+// Update message channel
+export const UPDATE_MESSAGE_CHANNEL_NAME = "update-message";
+export type UpdateMessageRequest = {
+  messageId: number;
+  updateData: {
+    content?: string;
+    errorMessage?: string | null;
+    errorCode?: string | null;
+  };
+};
+
+export type UpdateMessageResponse = null;
+
 // Delete message channel
 export const DELETE_MESSAGE_CHANNEL_NAME = "delete-message";
 export type DeleteMessageRequest = {
