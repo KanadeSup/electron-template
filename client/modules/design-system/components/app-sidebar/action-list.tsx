@@ -12,7 +12,7 @@ export function ActionList() {
       <ActionItem
         icon={MessageCirclePlus}
         label="New chat"
-        isActive={pathname === "/"}
+        isActive={pathname === "/chat"}
         onClick={() => navigate("/")}
       />
       <ActionItem icon={Search} label="Search" />

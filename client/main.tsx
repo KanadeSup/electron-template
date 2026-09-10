@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Route, Routes } from "react-router";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { ChatPage } from "./modules/chat/chat-page";
 import { SettingPage } from "./modules/setting/setting-page";
 
@@ -13,7 +13,8 @@ createRoot(root).render(
   <BrowserRouter>
     <QueryClientProvider client={queryClient}>
       <Routes>
-        <Route path="/" element={<ChatPage />} />
+        <Route path="/" element={<Navigate to="/chat" replace />} />
+        <Route path="/chat/:conversationId?" element={<ChatPage />} />
         <Route path="/settings" element={<SettingPage />} />
       </Routes>
     </QueryClientProvider>
