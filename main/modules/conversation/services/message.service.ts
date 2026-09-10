@@ -16,7 +16,7 @@ export class MessageService {
     return this.messageRepository.getMessageById(messageId);
   }
 
-  createMessage(dto: CreateMessageInputDto): number {
+  createMessage(dto: CreateMessageInputDto): ConversationMessageDto {
     return this.messageRepository.createMessage(dto);
   }
 

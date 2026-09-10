@@ -60,3 +60,93 @@ export type DeleteMessageRequest = {
 };
 
 export type DeleteMessageResponse = null;
+
+// Send message channel
+export const SEND_MESSAGE_CHANNEL_NAME = "send-message";
+
+export enum SendMessageEventErrorCodeEnum {
+  MODEL_NOT_FOUND = "model-not-found",
+  API_KEY_NOT_FOUND = "api-key-not-found",
+}
+
+export type SendMessageEventErrorCode = `${SendMessageEventErrorCodeEnum}`;
+
+export type SendMessageRequest = {
+  conversationId: number;
+  message: string;
+  model: string;
+};
+
+export type SendMessageResponse = null;
+
+export const SEND_MESSAGE_EVENT_NAME = "client:send-message-event";
+
+export type OnSendMessageEventResponse =
+  | {
+      conversationId: number;
+      type: "event.start";
+    }
+  | {
+      conversationId: number;
+      type: "error";
+      content: ErrorSendMessageResponse;
+    }
+  | {
+      conversationId: number;
+      type: "user-message.created";
+      content: BaseSendMessageResponse<"user">;
+    }
+  | {
+      conversationId: number;
+      type: "thinking.start";
+    }
+  | {
+      conversationId: number;
+      type: "thinking.delta";
+      content: string;
+    }
+  | {
+      conversationId: number;
+      type: "thinking.end";
+      content: BaseSendMessageResponse<"think"> | null;
+    }
+  | {
+      conversationId: number;
+      type: "model-output.start";
+    }
+  | {
+      conversationId: number;
+      type: "model-output.delta";
+      content: string;
+    }
+  | {
+      conversationId: number;
+      type: "model-output.end";
+      content: BaseSendMessageResponse<"assistant">;
+    }
+  | {
+      conversationId: number;
+      type: "event.end";
+      data: {
+        inputTokens?: number;
+        outputTokens?: number;
+        thinkingTokens?: number;
+      };
+    };
+
+export type BaseSendMessageResponse<TType extends Omit<ConversationMessageType, "error">> = {
+  id: number;
+  type: TType;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ErrorSendMessageResponse = {
+  id: number;
+  type: "error";
+  errorMessage?: string | null;
+  errorCode?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};

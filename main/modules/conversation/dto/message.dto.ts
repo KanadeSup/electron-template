@@ -13,7 +13,7 @@ export type ConversationMessageDto = {
 export type CreateMessageInputDto = {
   conversationId: number;
   type: ConversationMessageType;
-  content: string;
+  content?: string;
   errorMessage?: string | null;
   errorCode?: string | null;
 };

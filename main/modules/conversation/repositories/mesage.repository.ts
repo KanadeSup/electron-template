@@ -49,27 +49,30 @@ export class MessageRepository {
     return parseSchema(result, messagesSchema);
   }
 
-  createMessage(message: CreateMessageInputDto): number {
-    const schema = z.object({
-      id: z.number(),
-    });
+  createMessage(message: CreateMessageInputDto): ConversationMessageDto {
     const result = this.db
       .prepare(`
         INSERT INTO conversation_messages (conversation_id, type, content, error_message, error_code)
         VALUES (
-          ${message.conversationId}, 
-          '${message.type}', 
-          '${message.content}', 
-          ${message.errorMessage !== undefined ? `'${message.errorMessage}'` : null}, 
-          ${message.errorCode !== undefined ? `'${message.errorCode}'` : null}
+          @conversationId,
+          @type,
+          @content,
+          @errorMessage,
+          @errorCode
         )
-        RETURNING id
+        RETURNING id, type, content, error_message, error_code, created_at, updated_at
       `)
-      .get();
+      .get({
+        conversationId: message.conversationId,
+        type: message.type,
+        content: message.content || "",
+        errorMessage: message.errorMessage || null,
+        errorCode: message.errorCode || null,
+      });
 
-    const parsedResult = parseSchema(result, schema);
+    const parsedResult = parseSchema(result, messagesSchema);
 
-    return parsedResult.id;
+    return parsedResult;
   }
 
   updateMessage(id: number, message: UpdateMessageInputDto): boolean {

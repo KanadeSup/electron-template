@@ -17,8 +17,12 @@ export class AIModelService {
   private readonly aiModelRepository = new AIModelRepository();
   private readonly aiProviderRepository = new AIProviderRepository();
 
-  async getAIModels(dto: GetAIModelsInputDto): Promise<GetAIModelsOutputDto> {
+  getAIModels(dto: GetAIModelsInputDto): GetAIModelsOutputDto {
     return this.aiModelRepository.getAIModels(dto);
+  }
+
+  getAIModelByName(name: string): AIModelOutputDto | null {
+    return this.aiModelRepository.getAIModelByName(name);
   }
 
   updateAIModel(dto: UpdateAIModelInputDto): AIModelOutputDto {

@@ -39,6 +39,20 @@ export class AIModelRepository {
     return parseSchema(result, aiModelSchema.array());
   }
 
+  getAIModelByName(name: string): AIModelOutputDto | null {
+    const result = this.db
+      .prepare(`
+        SELECT m.id, m.model_name, m.enabled, m.sort_order, m.provider_id, p.provider_name
+        FROM ai_models m
+        JOIN providers p ON m.provider_id = p.id
+        WHERE m.model_name = '${name}'
+      `)
+      .get();
+
+    if (result === undefined) return null;
+    return parseSchema(result, aiModelSchema);
+  }
+
   getAIModelById(id: number): AIModelOutputDto | null {
     const result = this.db
       .prepare(`

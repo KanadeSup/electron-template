@@ -2,18 +2,26 @@ import { ModelSelect } from "@client/modules/ai-model/components/model-select/mo
 import { Button } from "@client/modules/design-system/components/shadcn-ui/button";
 import { Textarea } from "@client/modules/design-system/components/shadcn-ui/textarea";
 import { cn } from "cn";
-import { SendIcon } from "lucide-react";
+import { Loader2Icon, SendIcon } from "lucide-react";
 import { useState } from "react";
 
 export type ChatInputProps = {
   className?: string;
   placeholder?: string;
+  loading?: boolean;
+  onSubmit?: (message: string) => void;
 };
 export function ChatInput(props: ChatInputProps) {
-  const { className, placeholder } = props;
+  const { className, placeholder, loading, onSubmit } = props;
 
   const [isTextareaFocused, setIsTextareaFocused] = useState(false);
   const [value, setValue] = useState("");
+
+  const handleSubmit = () => {
+    if (loading) return;
+    onSubmit?.(value);
+    setValue("");
+  };
 
   return (
     <div
@@ -33,6 +41,12 @@ export function ChatInput(props: ChatInputProps) {
         )}
         placeholder={placeholder}
         value={value}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleSubmit();
+          }
+        }}
         onChange={(e) => setValue(e.target.value)}
         onFocus={() => setIsTextareaFocused(true)}
         onBlur={() => setIsTextareaFocused(false)}
@@ -41,8 +55,14 @@ export function ChatInput(props: ChatInputProps) {
         <div>
           <ModelSelect />
         </div>
-        <Button variant="default" size="icon" className="rounded-2xl" disabled={!value}>
-          <SendIcon />
+        <Button
+          variant="default"
+          size="icon"
+          className="rounded-2xl"
+          disabled={!value || loading}
+          onClick={handleSubmit}
+        >
+          {loading ? <Loader2Icon className="w-4 h-4 animate-spin" /> : <SendIcon />}
         </Button>
       </div>
     </div>

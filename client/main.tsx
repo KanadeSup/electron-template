@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { ChatPage } from "./modules/chat/chat-page";
+import { Toaster } from "./modules/design-system/components/shadcn-ui/toast";
 import { SettingPage } from "./modules/setting/setting-page";
 
 const root = document.getElementById("root");
@@ -12,6 +13,7 @@ const queryClient = new QueryClient();
 createRoot(root).render(
   <BrowserRouter>
     <QueryClientProvider client={queryClient}>
+      <Toaster />
       <Routes>
         <Route path="/" element={<Navigate to="/chat" replace />} />
         <Route path="/chat/:conversationId?" element={<ChatPage />} />

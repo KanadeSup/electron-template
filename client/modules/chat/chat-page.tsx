@@ -1,8 +1,39 @@
+import { useNavigate, useParams } from "react-router";
 import { AssistantSelect } from "../assistant/components/assistant-select/assistant-select";
 import { AppLayout } from "../design-system/components/app-layout/app-layout";
+import { toast } from "../design-system/components/shadcn-ui/toast";
 import { ChatInput } from "./components/chat-input/chat-input";
+import { useChatController } from "./hooks/use-chat-controller";
 
 export function ChatPage() {
+  const params = useParams();
+  const conversationId = params.conversationId ? Number(params.conversationId) : null;
+
+  const navigate = useNavigate();
+
+  const chatController = useChatController({
+    conversationId,
+  });
+
+  const handleSubmit = async (message: string) => {
+    let activeConversationId = conversationId;
+    if (activeConversationId === null) {
+      activeConversationId = await chatController.createConversation();
+      if (!activeConversationId) {
+        toast.add({
+          type: "error",
+          title: "Error creating conversation",
+          description: "Please try again or check logs for more details.",
+          priority: "high",
+        });
+        return;
+      }
+      navigate(`/chat/${activeConversationId}`);
+    }
+    chatController.sendMessage(activeConversationId, message, {
+      model: "gemini-2.5-flash",
+    });
+  };
   return (
     <AppLayout className="flex flex-col gap-3">
       <div className="w-full">
@@ -10,7 +41,7 @@ export function ChatPage() {
       </div>
       <div className="w-full flex-1 flex flex-col justify-center items-center">
         <div className="w-[70%]">
-          <ChatInput placeholder="Ask me anything..." />
+          <ChatInput placeholder="Ask me anything..." onSubmit={handleSubmit} />
         </div>
       </div>
     </AppLayout>
