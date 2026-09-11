@@ -96,7 +96,7 @@ export function useChatController(params: ChatControllerParams) {
     // Load conversation when the conversationId changes
     async function loadConversation() {
       if (!conversationId) return;
-      if (conversationMemoriesRef.current[conversationId]?.isReady) return;
+      if (conversationMemoriesRef.current[conversationId]) return;
       const resp = await getConversationById({
         conversationId,
       });

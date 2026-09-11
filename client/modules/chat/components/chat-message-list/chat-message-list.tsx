@@ -7,7 +7,7 @@ import type {
 
 type AssistantMessageWithThinking = DisplayAssistantMessage & {
   type: "assistant";
-  isThinking: true;
+  isThinking: boolean;
   thinkingContent: string;
 };
 
@@ -67,7 +67,7 @@ type AssistantMessageProps = {
 
 function AssistantMessage(props: AssistantMessageProps) {
   const { message } = props;
-  const thinkingContent = isAssistantWithThinking(message) ? message.thinkingContent : undefined;
+  const thinkingContent = "thinkingContent" in message ? message.thinkingContent : undefined;
 
   return (
     <div className="flex justify-start pr-10">
@@ -87,18 +87,32 @@ function AssistantMessage(props: AssistantMessageProps) {
 function combineAdjacentThinkAndAssistant(messages: DisplayMessage[]): ChatListItem[] {
   const items: ChatListItem[] = [];
 
-  for (let i = 0; i < messages.length - 1; i++) {
+  for (let i = 0; i < messages.length; i++) {
     const current = messages[i];
     const next = messages[i + 1];
 
-    if (current.type === "think" && next.type === "assistant") {
+    if (next && current.type === "think" && next.type === "assistant") {
       items.push({
         ...next,
         type: "assistant",
-        isThinking: true,
+        isThinking: current.isGenerating,
         thinkingContent: current.content,
       });
       i += 1;
+      continue;
+    }
+
+    if (current.type === "think") {
+      items.push({
+        id: current.id,
+        content: "",
+        type: "assistant",
+        isThinking: current.isGenerating,
+        thinkingContent: current.content,
+        isGenerating: false,
+        createdAt: current.createdAt,
+        updatedAt: current.updatedAt,
+      });
       continue;
     }
 
@@ -108,14 +122,7 @@ function combineAdjacentThinkAndAssistant(messages: DisplayMessage[]): ChatListI
   return items;
 }
 
-function isAssistantWithThinking(message: ChatListItem): message is AssistantMessageWithThinking {
-  return message.type === "assistant" && "isThinking" in message && message.isThinking === true;
-}
-
 function getListItemKey(item: ChatListItem, index: number): string {
-  if (isAssistantWithThinking(item)) {
-    return `think-assistant-${item.id ?? `pending-${index}`}`;
-  }
   if (item.id != null) {
     return `${item.type}-${item.id}`;
   }
