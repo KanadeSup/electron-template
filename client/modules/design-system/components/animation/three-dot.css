@@ -1,0 +1,36 @@
+@keyframes color-wave {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+.animate-color-wave {
+  animation: color-wave 3s linear infinite;
+}
+
+@keyframes wave-bounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+.animate-wave-bounce {
+  animation-name: wave-bounce;
+  animation-duration: 1.1s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-wave-bounce {
+    animation: none;
+    opacity: 0.8;
+  }
+}

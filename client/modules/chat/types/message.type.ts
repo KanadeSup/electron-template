@@ -8,10 +8,10 @@ export type DisplayUserMessage = {
   updatedAt: Date;
 };
 
-export type DisplayAssistantMessage = {
+export type DisplayAssistantMessage<T extends "assistant" | "think"> = {
   id?: number;
 
-  type: "assistant" | "think";
+  type: T;
   content: string;
 
   isGenerating: boolean;
@@ -31,4 +31,8 @@ export type DisplayErrorMessage = {
   updatedAt?: Date;
 };
 
-export type DisplayMessage = DisplayUserMessage | DisplayAssistantMessage | DisplayErrorMessage;
+export type DisplayMessage =
+  | DisplayUserMessage
+  | DisplayAssistantMessage<"assistant">
+  | DisplayAssistantMessage<"think">
+  | DisplayErrorMessage;

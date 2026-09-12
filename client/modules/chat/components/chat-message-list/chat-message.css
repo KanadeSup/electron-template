@@ -1,0 +1,62 @@
+.streamdown-sm {
+  font-size: 12px;
+}
+
+[data-streamdown="heading-1"] {
+  font-size: 24px;
+}
+.streamdown-sm [data-streamdown="heading-1"] {
+  font-size: 22px;
+}
+
+[data-streamdown="heading-2"] {
+  font-size: 20px;
+}
+.streamdown-sm [data-streamdown="heading-2"] {
+  font-size: 18px;
+}
+
+[data-streamdown="heading-3"] {
+  font-size: 16px;
+}
+.streamdown-sm [data-streamdown="heading-3"] {
+  font-size: 14px;
+}
+
+[data-streamdown="heading-4"] {
+  font-size: 14px;
+}
+.streamdown-sm [data-streamdown="heading-4"] {
+  font-size: 12px;
+}
+
+[data-streamdown="heading-5"] {
+  font-size: 14px;
+}
+.streamdown-sm [data-streamdown="heading-5"] {
+  font-size: 12px;
+}
+
+[data-streamdown="heading-6"] {
+  font-size: 14px;
+}
+.streamdown-sm [data-streamdown="heading-6"] {
+  font-size: 12px;
+}
+
+[data-streamdown="code-block"] {
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--muted);
+}
+
+[data-streamdown="code-block-header"] {
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+[data-streamdown="code-block-body"] {
+  border: 1px solid var(--muted);
+  max-height: unset !important;
+}

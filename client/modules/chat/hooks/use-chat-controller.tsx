@@ -145,7 +145,11 @@ export function useChatController(params: ChatControllerParams) {
    *  which is not necessary to be included in the dependencies array
    */
   const updateGeneratingMessage = useCallback(
-    (conversationId: number, type: "assistant" | "think", message: DisplayAssistantMessage) => {
+    (
+      conversationId: number,
+      type: "assistant" | "think",
+      message: DisplayAssistantMessage<"assistant" | "think">,
+    ) => {
       const conversationMemory = conversationMemoriesRef.current[conversationId];
       if (!conversationMemory) return;
 
