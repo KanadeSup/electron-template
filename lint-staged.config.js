@@ -12,7 +12,7 @@ export default {
     const rel = files.join(" ");
     return rel ? [`npx biome check --write ${rel}`, `npx biome format --write ${rel}`] : [];
   },
-  "packages/**/*.{ts,tsx,js,jsx}": (files) => {
+  "shared/**/*.{ts,tsx,js,jsx}": (files) => {
     const rel = files.join(" ");
     return rel ? [`npx biome check --write ${rel}`, `npx biome format --write ${rel}`] : [];
   },
