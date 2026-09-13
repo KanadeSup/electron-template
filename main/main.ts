@@ -34,6 +34,12 @@ import {
 } from "./modules/conversation/message.channel";
 import { sqliteDatabase } from "./modules/database/sqlite-database";
 import { sayHelloChannel } from "./modules/hello/hello.channel";
+import {
+  getMappedKeysChannel,
+  resetKeyChannel,
+  setKeyChannel,
+  unsetKeyChannel,
+} from "./modules/keyboard/keyboard.channel";
 
 // Initialize the logger to be available in renderer process
 log.initialize();
@@ -186,4 +192,8 @@ new Main().init([
   createMessageChannel,
   deleteMessageChannel,
   sendMessageChannel,
+  getMappedKeysChannel,
+  setKeyChannel,
+  unsetKeyChannel,
+  resetKeyChannel,
 ]);
