@@ -1,3 +1,4 @@
+import { COMMAND_DEFINITIONS } from "@client/modules/command/constants/command.constants";
 import type { Keybinding } from "../stores/keyboard-store";
 
 export const MODIFIER_KEYS = ["ctrl", "alt", "shift", "meta"];
@@ -160,4 +161,55 @@ export function matchKeybinding(
 
 export function isValidSequenceKeys(key: string): boolean {
   return true;
+}
+
+export type KeyCommandMapping = {
+  commandId: string;
+  sequenceString: string | null;
+};
+
+export function mapKeyCommandMappingsToKeybindings(mappings: KeyCommandMapping[]): Keybinding[] {
+  const keybindings: Keybinding[] = [];
+  COMMAND_DEFINITIONS.forEach((commandDef) => {
+    const mapping = mappings.find((m) => m.commandId === commandDef.commandId);
+    if (mapping) {
+      const normalizedSequenceString = mapping.sequenceString
+        ? normalizeSequenceString(mapping.sequenceString)
+        : null;
+      keybindings.push({
+        commandId: commandDef.commandId,
+        sequenceString: normalizedSequenceString,
+        sequence: normalizedSequenceString ? arrayifySequenceString(normalizedSequenceString) : [],
+      });
+      return;
+    }
+    const defaultSequenceString = commandDef.defaultSequenceKey
+      ? normalizeSequenceString(commandDef.defaultSequenceKey)
+      : null;
+    keybindings.push({
+      commandId: commandDef.commandId,
+      sequenceString: defaultSequenceString,
+      sequence: defaultSequenceString ? arrayifySequenceString(defaultSequenceString) : [],
+    });
+  });
+  return keybindings;
+}
+
+export function arrayifySequenceString(sequenceString: string): string[] {
+  const regex = /<[^>]+>|./g;
+  return sequenceString.match(regex) || [];
+}
+
+export function normalizeSequenceString(sequenceString: string): string {
+  return sequenceString.replace(/<([^>]+)>/g, (_, sequence: string) => {
+    const parts = sequence.split("-");
+
+    const modifiers = parts.filter((part) => MODIFIER_KEYS.includes(part));
+
+    const keys = parts.filter((part) => !MODIFIER_KEYS.includes(part));
+
+    modifiers.sort((a, b) => MODIFIER_KEYS.indexOf(a) - MODIFIER_KEYS.indexOf(b));
+
+    return `<${[...modifiers, ...keys].join("-")}>`;
+  });
 }
