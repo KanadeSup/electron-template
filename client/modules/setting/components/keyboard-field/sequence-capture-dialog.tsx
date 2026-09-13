@@ -7,27 +7,27 @@ import {
 } from "@client/modules/design-system/components/shadcn-ui/dialog";
 import {
   getKeysFromEvent,
-  isValidSequenceKeys,
+  normalizeSequence,
   stringifyShortcutKeys,
 } from "@client/modules/keyboard/lib/keyboard";
 import { cn } from "cn";
 import { useCallback, useEffect, useState } from "react";
 import { KeyboardKdb } from "./keyboard-kdb";
 
-export type SequenceKeyCaptureDialogProps = {
+export type SequenceCaptureDialogProps = {
   open: boolean;
   onConfirm: (keys: string) => void;
   onCancel: () => void;
 };
 
-export function SequenceKeyCaptureDialog(props: SequenceKeyCaptureDialogProps) {
+export function SequenceCaptureDialog(props: SequenceCaptureDialogProps) {
   const { open, onConfirm, onCancel } = props;
 
-  const [sequenceKeys, setSequenceKeys] = useState<string[]>([]);
+  const [keys, setKeys] = useState<string[]>([]);
 
   useEffect(() => {
     if (open) {
-      setSequenceKeys([]);
+      setKeys([]);
     }
   }, [open]);
 
@@ -36,15 +36,15 @@ export function SequenceKeyCaptureDialog(props: SequenceKeyCaptureDialogProps) {
       event.preventDefault();
       event.stopPropagation();
 
-      if (event.key === "Enter" && sequenceKeys.length > 0) {
-        if (isValidSequenceKeys(sequenceKeys.join("+"))) {
-          onConfirm(sequenceKeys.join("+"));
-        }
+      if (event.key === "Enter" && keys.length > 0) {
+        const sequence = keys.join("");
+        const normalizedSequence = normalizeSequence(sequence);
+        onConfirm(normalizedSequence);
         return;
       }
 
       if (event.key === "Backspace") {
-        setSequenceKeys((prev) => prev.slice(0, -1));
+        setKeys((prev) => prev.slice(0, -1));
         return;
       }
 
@@ -53,16 +53,16 @@ export function SequenceKeyCaptureDialog(props: SequenceKeyCaptureDialogProps) {
         return;
       }
 
-      if (sequenceKeys.length >= 4) return;
+      if (keys.length >= 4) return;
 
       const pressedKeys = getKeysFromEvent(event);
       const pressedKeysString = stringifyShortcutKeys(pressedKeys);
 
       if (!pressedKeysString) return;
 
-      setSequenceKeys((prev) => [...prev, pressedKeysString]);
+      setKeys((prev) => [...prev, pressedKeysString]);
     },
-    [sequenceKeys, onConfirm, onCancel],
+    [keys, onConfirm, onCancel],
   );
 
   useEffect(() => {
@@ -97,8 +97,8 @@ export function SequenceKeyCaptureDialog(props: SequenceKeyCaptureDialogProps) {
             "flex min-h-36 flex-col items-center justify-center gap-3 bg-muted/30 px-6 py-8",
           )}
         >
-          {sequenceKeys.length > 0 ? (
-            <KeyboardKdb sequenceKeys={sequenceKeys} />
+          {keys.length > 0 ? (
+            <KeyboardKdb sequenceKeys={keys} />
           ) : (
             <p className="text-sm text-muted-foreground font-semibold">Press your keyboard…</p>
           )}

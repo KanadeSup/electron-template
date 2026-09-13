@@ -147,11 +147,11 @@ export function matchKeybinding(
   if (!sequenceString) return { type: "none" };
 
   for (const keybinding of keybindings) {
-    if (keybinding.sequenceString === sequenceString) {
+    if (keybinding.sequence === sequenceString) {
       return { type: "match", keybinding };
     }
-    if (!keybinding.sequenceString) continue;
-    if (keybinding.sequenceString.startsWith(sequenceString)) {
+    if (!keybinding.sequence) continue;
+    if (keybinding.sequence.startsWith(sequenceString)) {
       return { type: "prefix" };
     }
   }
@@ -159,50 +159,56 @@ export function matchKeybinding(
   return { type: "none" };
 }
 
-export function isValidSequenceKeys(key: string): boolean {
-  return true;
-}
-
-export type KeyCommandMapping = {
+export type SequenceMapping = {
   commandId: string;
   sequenceString: string | null;
 };
 
-export function mapKeyCommandMappingsToKeybindings(mappings: KeyCommandMapping[]): Keybinding[] {
+/**
+ * Building full keybindings
+ */
+export function buildingKeybindings(mappings: SequenceMapping[]): Keybinding[] {
   const keybindings: Keybinding[] = [];
   COMMAND_DEFINITIONS.forEach((commandDef) => {
     const mapping = mappings.find((m) => m.commandId === commandDef.commandId);
     if (mapping) {
       const normalizedSequenceString = mapping.sequenceString
-        ? normalizeSequenceString(mapping.sequenceString)
+        ? normalizeSequence(mapping.sequenceString)
         : null;
       keybindings.push({
         commandId: commandDef.commandId,
-        sequenceString: normalizedSequenceString,
-        sequence: normalizedSequenceString ? arrayifySequenceString(normalizedSequenceString) : [],
+        sequence: normalizedSequenceString,
+        keys: normalizedSequenceString ? sequenceToKeys(normalizedSequenceString) : [],
       });
       return;
     }
     const defaultSequenceString = commandDef.defaultSequenceKey
-      ? normalizeSequenceString(commandDef.defaultSequenceKey)
+      ? normalizeSequence(commandDef.defaultSequenceKey)
       : null;
     keybindings.push({
       commandId: commandDef.commandId,
-      sequenceString: defaultSequenceString,
-      sequence: defaultSequenceString ? arrayifySequenceString(defaultSequenceString) : [],
+      sequence: defaultSequenceString,
+      keys: defaultSequenceString ? sequenceToKeys(defaultSequenceString) : [],
     });
   });
   return keybindings;
 }
 
-export function arrayifySequenceString(sequenceString: string): string[] {
+export type SequenceToKeysOptions = {
+  normalize?: boolean;
+};
+export function sequenceToKeys(sequence: string, options: SequenceToKeysOptions = {}): string[] {
+  const { normalize = true } = options;
+  if (normalize) {
+    sequence = normalizeSequence(sequence);
+  }
   const regex = /<[^>]+>|./g;
-  return sequenceString.match(regex) || [];
+  return sequence.match(regex) || [];
 }
 
-export function normalizeSequenceString(sequenceString: string): string {
-  return sequenceString.replace(/<([^>]+)>/g, (_, sequence: string) => {
-    const parts = sequence.split("-");
+export function normalizeSequence(sequence: string): string {
+  return sequence.replace(/<([^>]+)>/g, (_, key: string) => {
+    const parts = key.split("-");
 
     const modifiers = parts.filter((part) => MODIFIER_KEYS.includes(part));
 
@@ -212,4 +218,10 @@ export function normalizeSequenceString(sequenceString: string): string {
 
     return `<${[...modifiers, ...keys].join("-")}>`;
   });
+}
+
+export function getDefaultSequence(commandId: string): string | null {
+  const commandDef = COMMAND_DEFINITIONS.find((def) => def.commandId === commandId);
+  if (!commandDef) return null;
+  return commandDef.defaultSequenceKey ? normalizeSequence(commandDef.defaultSequenceKey) : null;
 }

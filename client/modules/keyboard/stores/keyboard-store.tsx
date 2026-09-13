@@ -3,25 +3,36 @@ import Logger from "electron-log/renderer.js";
 import { create } from "zustand";
 import { getMappedKeys, resetKey, setKey, unsetKey } from "../api/keyboard.api";
 import {
-  arrayifySequenceString,
-  mapKeyCommandMappingsToKeybindings,
-  normalizeSequenceString,
+  buildingKeybindings,
+  getDefaultSequence,
+  normalizeSequence,
+  sequenceToKeys,
 } from "../lib/keyboard";
+
+export type KeybindingOperationResult = {
+  success: boolean;
+  errorCode?: KeybindingOperationErrorCode;
+};
+
+export type KeybindingOperationErrorCode =
+  | "unexpected-error"
+  | "missing-sequence"
+  | "command-not-found";
 
 export type Keybinding = {
   commandId: CommandId;
-  sequenceString: string | null;
-  sequence: string[];
+  sequence: string | null;
+  keys: string[];
 };
 
 export type KeyboardStore = {
   keybindings: Keybinding[];
   isLoading: boolean;
   actions: {
-    load(): Promise<boolean>;
-    setSequenceByCommandId: (commandId: CommandId, sequenceString: string) => Promise<boolean>;
-    unsetSequenceByCommandId: (commandId: CommandId) => Promise<boolean>;
-    resetSequenceByCommandId: (commandId: CommandId) => Promise<boolean>;
+    load(): Promise<KeybindingOperationResult>;
+    setKeybinding: (commandId: CommandId, sequence: string) => Promise<KeybindingOperationResult>;
+    unsetKeybinding: (commandId: CommandId) => Promise<KeybindingOperationResult>;
+    resetKeybinding: (commandId: CommandId) => Promise<KeybindingOperationResult>;
   };
 };
 
@@ -31,110 +42,125 @@ export const useKeyboardStore = create<KeyboardStore>((set, get) => ({
   keybindings: [],
   isLoading: false,
   actions: {
-    load: async (): Promise<boolean> => {
+    load: async () => {
       set({ isLoading: true });
       const response = await getMappedKeys();
       if (!response.success) {
         Logger.scope(SCOPE).error("Failed to load keybindings", response.errorMessage);
         set({
-          keybindings: mapKeyCommandMappingsToKeybindings([]),
+          keybindings: buildingKeybindings([]),
           isLoading: false,
         });
-        return false;
+        return { success: false, errorCode: "unexpected-error" };
       }
+
+      const keybindings = buildingKeybindings(
+        response.data.map((m) => ({
+          commandId: m.command,
+          sequenceString: m.key,
+        })),
+      );
       set({
-        keybindings: mapKeyCommandMappingsToKeybindings(
-          response.data.map((m) => ({
-            commandId: m.command,
-            sequenceString: m.key,
-          })),
-        ),
+        keybindings,
         isLoading: false,
       });
-      return true;
+      return { success: true };
     },
 
-    setSequenceByCommandId: async (commandId, sequenceString): Promise<boolean> => {
-      if (!sequenceString) {
+    setKeybinding: async (commandId, sequence) => {
+      if (!sequence) {
         Logger.scope(SCOPE).error("Sequence string is required", commandId);
-        return false;
+        return { success: false, errorCode: "missing-sequence" };
       }
 
       const keybindings = get().keybindings;
-      const foundBindingIndex = keybindings.findIndex((binding) => binding.commandId === commandId);
+      const bindingIndex = keybindings.findIndex((binding) => binding.commandId === commandId);
 
-      if (foundBindingIndex === -1) {
+      if (bindingIndex === -1) {
         Logger.scope(SCOPE).error("Command id not found", commandId);
-        return false;
+        return { success: false, errorCode: "command-not-found" };
       }
 
-      const normalizedSequenceString = normalizeSequenceString(sequenceString);
+      const normalizedSequence = normalizeSequence(sequence);
 
-      const response = await setKey(normalizedSequenceString, commandId);
+      const response = await setKey(normalizedSequence, commandId);
       if (!response.success) {
         Logger.scope(SCOPE).error("Failed to set sequence by command id", response.errorMessage);
-        return false;
+        return { success: false, errorCode: "unexpected-error" };
       }
 
-      const newKeybindings = [...keybindings];
-      newKeybindings[foundBindingIndex] = {
-        ...newKeybindings[foundBindingIndex],
-        sequenceString: normalizedSequenceString,
-        sequence: arrayifySequenceString(normalizedSequenceString),
+      // Update keybinding in the store
+      const updatedBinding = {
+        ...keybindings[bindingIndex],
+        sequence: normalizedSequence,
+        keys: sequenceToKeys(normalizedSequence),
       };
-      set({ keybindings: newKeybindings });
 
-      return true;
+      set({
+        keybindings: keybindings.map((binding, index) =>
+          index === bindingIndex ? updatedBinding : binding,
+        ),
+      });
+
+      return { success: true };
     },
 
-    unsetSequenceByCommandId: async (commandId): Promise<boolean> => {
+    unsetKeybinding: async (commandId) => {
       const keybindings = get().keybindings;
-      const foundBindingIndex = keybindings.findIndex((binding) => binding.commandId === commandId);
-      if (foundBindingIndex === -1) {
+      const bindingIndex = keybindings.findIndex((binding) => binding.commandId === commandId);
+      if (bindingIndex === -1) {
         Logger.scope(SCOPE).error("Command id not found", commandId);
-        return false;
+        return { success: false, errorCode: "command-not-found" };
       }
 
       const response = await unsetKey(commandId);
       if (!response.success) {
         Logger.scope(SCOPE).error("Failed to unset sequence by command id", response.errorMessage);
-        return false;
+        return { success: false, errorCode: "unexpected-error" };
       }
 
-      const newKeybindings = [...keybindings];
-      newKeybindings[foundBindingIndex] = {
-        ...newKeybindings[foundBindingIndex],
-        sequenceString: null,
-        sequence: [],
+      const updatedBinding = {
+        ...keybindings[bindingIndex],
+        sequence: null,
+        keys: [],
       };
-      set({ keybindings: newKeybindings });
+      set({
+        keybindings: keybindings.map((binding, index) =>
+          index === bindingIndex ? updatedBinding : binding,
+        ),
+      });
 
-      return true;
+      return { success: true };
     },
 
-    resetSequenceByCommandId: async (commandId): Promise<boolean> => {
+    resetKeybinding: async (commandId) => {
       const keybindings = get().keybindings;
-      const foundBindingIndex = keybindings.findIndex((binding) => binding.commandId === commandId);
-      if (foundBindingIndex === -1) {
+      const bindingIndex = keybindings.findIndex((binding) => binding.commandId === commandId);
+      if (bindingIndex === -1) {
         Logger.scope(SCOPE).error("Command id not found", commandId);
-        return false;
+        return { success: false, errorCode: "command-not-found" };
       }
 
       const response = await resetKey(commandId);
       if (!response.success) {
         Logger.scope(SCOPE).error("Failed to reset sequence by command id", response.errorMessage);
-        return false;
+        return { success: false, errorCode: "unexpected-error" };
       }
 
-      const newKeybindings = [...keybindings];
-      newKeybindings[foundBindingIndex] = {
-        ...newKeybindings[foundBindingIndex],
-        sequenceString: null,
-        sequence: [],
-      };
-      set({ keybindings: newKeybindings });
+      const defaultSequence = getDefaultSequence(commandId);
 
-      return true;
+      const updatedBinding = {
+        ...keybindings[bindingIndex],
+        sequence: defaultSequence,
+        keys: defaultSequence ? sequenceToKeys(defaultSequence) : [],
+      };
+      set({
+        keybindings: keybindings.map((binding, index) =>
+          index === bindingIndex ? updatedBinding : binding,
+        ),
+      });
+
+      return { success: true };
     },
   },
 }));

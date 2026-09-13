@@ -1,7 +1,7 @@
 import { Button } from "@client/modules/design-system/components/shadcn-ui/button";
 import { cn } from "cn";
 import { useState } from "react";
-import { SequenceKeyCaptureDialog } from "./sequence-key-capture-dialog";
+import { SequenceCaptureDialog } from "./sequence-capture-dialog";
 
 export type KeyboardInputProps = {
   value: string;
@@ -23,7 +23,7 @@ export function KeyboardInput({ value, className, onChange }: KeyboardInputProps
         <kbd className="text-sm font-medium">{value}</kbd>
       </Button>
 
-      <SequenceKeyCaptureDialog
+      <SequenceCaptureDialog
         open={isOpen}
         onConfirm={(key) => {
           setIsOpen(false);
