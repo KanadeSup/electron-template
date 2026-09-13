@@ -157,3 +157,7 @@ export function matchKeybinding(
 
   return { type: "none" };
 }
+
+export function isValidSequenceKeys(key: string): boolean {
+  return true;
+}

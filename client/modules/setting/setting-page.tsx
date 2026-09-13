@@ -6,6 +6,7 @@ import {
   SettingSidebar,
 } from "./components/setting-sidebar/setting-sidebar";
 import { AiModelSetting } from "./setting-sections/ai-model-setting/ai-model-setting";
+import { KeyboardSetting } from "./setting-sections/keyboard-setting/keyboard-setting";
 
 export function SettingPage() {
   const [selected, setSelected] = useState<SettingSectionId>("general");
@@ -19,6 +20,7 @@ export function SettingPage() {
       <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden py-2">
         <p className="font-semibold">{section.label}</p>
         {selected === "ai-model" && <AiModelSetting />}
+        {selected === "keyboard" && <KeyboardSetting />}
       </div>
     </AppLayout>
   );
