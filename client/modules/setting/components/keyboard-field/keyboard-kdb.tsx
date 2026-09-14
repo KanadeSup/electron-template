@@ -3,20 +3,18 @@ import { cn } from "cn";
 
 export type KeyboardKdbProps = {
   sequenceKeys: string[];
+  className?: string;
 };
 
 export function KeyboardKdb(props: KeyboardKdbProps) {
-  const { sequenceKeys } = props;
+  const { sequenceKeys, className } = props;
 
   return (
     <div className="flex flex-row gap-1 flex-wrap">
-      {sequenceKeys.map((sequenceKey) => (
+      {sequenceKeys.map((sequenceKey, idx) => (
         <Kbd
-          key={sequenceKey}
-          className={cn(
-            "rounded-md px-2 py-4 text-base font-medium text-foreground",
-            "border-2 border-border",
-          )}
+          key={idx.toString()}
+          className={cn("font-medium text-foreground", "border-2 border-border", className)}
         >
           {sequenceKey}
         </Kbd>

@@ -10,9 +10,19 @@ export type KeyboardFieldProps = {
   defaultSequenceKey?: string | null;
   onChange?: (sequenceKey: string) => void;
   onRemove?: () => void;
+  onReset?: () => void;
 };
 export function KeyboardField(props: KeyboardFieldProps) {
-  const { title, description, sequenceKey, defaultSequenceKey, onChange, onRemove } = props;
+  const { title, description, sequenceKey, defaultSequenceKey, onChange, onRemove, onReset } =
+    props;
+
+  const handleChange = (sequenceKey: string) => {
+    if (sequenceKey === defaultSequenceKey) {
+      onReset?.();
+    } else {
+      onChange?.(sequenceKey);
+    }
+  };
 
   return (
     <div className={cn("flex items-center gap-4", "transition-colors")}>
@@ -24,7 +34,7 @@ export function KeyboardField(props: KeyboardFieldProps) {
       </div>
 
       <div className="flex shrink-0 items-center gap-1">
-        <KeyboardInput value={sequenceKey ?? ""} onChange={(key) => onChange?.(key)} />
+        <KeyboardInput value={sequenceKey ?? ""} onChange={handleChange} />
 
         <div className="flex items-center">
           <Button
@@ -32,7 +42,7 @@ export function KeyboardField(props: KeyboardFieldProps) {
             variant="ghost"
             size="icon-xs"
             disabled={sequenceKey === defaultSequenceKey || !defaultSequenceKey}
-            onClick={() => defaultSequenceKey && onChange?.(defaultSequenceKey)}
+            onClick={() => onReset?.()}
             className={cn("text-muted-foreground hover:text-foreground", "disabled:opacity-30")}
           >
             <RotateCcwIcon className="size-3.5 stroke-muted-foreground stroke-3" />

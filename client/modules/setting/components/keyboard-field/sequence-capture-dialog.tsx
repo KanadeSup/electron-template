@@ -98,7 +98,7 @@ export function SequenceCaptureDialog(props: SequenceCaptureDialogProps) {
           )}
         >
           {keys.length > 0 ? (
-            <KeyboardKdb sequenceKeys={keys} />
+            <KeyboardKdb sequenceKeys={keys} className="px-2 py-4 text-base rounded-md" />
           ) : (
             <p className="text-sm text-muted-foreground font-semibold">Press your keyboard…</p>
           )}

@@ -1,6 +1,8 @@
 import { Button } from "@client/modules/design-system/components/shadcn-ui/button";
+import { sequenceToKeys } from "@client/modules/keyboard/lib/keyboard";
 import { cn } from "cn";
 import { useState } from "react";
+import { KeyboardKdb } from "./keyboard-kdb";
 import { SequenceCaptureDialog } from "./sequence-capture-dialog";
 
 export type KeyboardInputProps = {
@@ -18,9 +20,14 @@ export function KeyboardInput({ value, className, onChange }: KeyboardInputProps
         variant="outline"
         size="sm"
         onClick={() => setIsOpen(true)}
-        className={cn("min-w-28 justify-center px-2.5 font-normal", "hover:bg-muted/70", className)}
+        className={cn(
+          "min-w-28 justify-center px-2.5 font-normal",
+          !value && "text-muted-foreground hover:bg-muted/40 hover:border-ring",
+          value && "bg-transparent! border-none hover:bg-muted/40!",
+          className,
+        )}
       >
-        <kbd className="text-sm font-medium">{value}</kbd>
+        {value ? <KeyboardKdb sequenceKeys={sequenceToKeys(value)} /> : <p> Unset </p>}
       </Button>
 
       <SequenceCaptureDialog

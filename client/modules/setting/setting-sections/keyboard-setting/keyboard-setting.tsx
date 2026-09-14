@@ -3,9 +3,21 @@ import {
   COMMAND_GROUPS,
 } from "@client/modules/command/constants/command.constants";
 import { ScrollArea } from "@client/modules/design-system/components/shadcn-ui/scroll-area";
+import { useKeyboardStore } from "@client/modules/keyboard/stores/keyboard-store";
 import { KeyboardField } from "../../components/keyboard-field/keyboard-field";
 
 export function KeyboardSetting() {
+  const keybindings = useKeyboardStore((state) => state.keybindings);
+  const actions = useKeyboardStore((state) => state.actions);
+
+  const sequenceMap = keybindings.reduce(
+    (acc, keybinding) => {
+      acc[keybinding.commandId] = keybinding.sequence;
+      return acc;
+    },
+    {} as Record<string, string | null>,
+  );
+
   return (
     <ScrollArea className="min-h-0 flex-1">
       <div className="flex flex-col gap-4 pr-4">
@@ -19,7 +31,17 @@ export function KeyboardSetting() {
                 <KeyboardField
                   key={commandDefinition.commandId}
                   title={commandDefinition.commandLabel}
-                  sequenceKey={null}
+                  sequenceKey={sequenceMap[commandDefinition.commandId]}
+                  defaultSequenceKey={commandDefinition.defaultSequenceKey}
+                  onChange={(sequence) => {
+                    actions.setKeybinding(commandDefinition.commandId, sequence);
+                  }}
+                  onRemove={() => {
+                    actions.unsetKeybinding(commandDefinition.commandId);
+                  }}
+                  onReset={() => {
+                    actions.resetKeybinding(commandDefinition.commandId);
+                  }}
                 />
               ))}
             </div>
