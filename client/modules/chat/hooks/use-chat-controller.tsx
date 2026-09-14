@@ -280,6 +280,8 @@ export function useChatController(params: ChatControllerParams) {
           break;
         }
         case "error":
+          removeGeneratingMessage(response.conversationId, "assistant");
+          removeGeneratingMessage(response.conversationId, "think");
           addDisplayMessage(response.conversationId, {
             type: "error",
             errorMessage: response.content.errorMessage,
