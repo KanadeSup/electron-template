@@ -5,21 +5,27 @@ import { cn } from "cn";
 import { Loader2Icon, SendIcon } from "lucide-react";
 import { useState } from "react";
 
+export type ChatInputSubmitOptions = {
+  model: string;
+};
+
 export type ChatInputProps = {
   className?: string;
   placeholder?: string;
   loading?: boolean;
-  onSubmit?: (message: string) => void;
+  onSubmit?: (message: string, options: ChatInputSubmitOptions) => void;
 };
 export function ChatInput(props: ChatInputProps) {
   const { className, placeholder, loading, onSubmit } = props;
 
   const [isTextareaFocused, setIsTextareaFocused] = useState(false);
   const [value, setValue] = useState("");
+  const [selectedModel, setSelectedModel] = useState<string | null>(null);
 
   const handleSubmit = () => {
     if (loading) return;
-    onSubmit?.(value);
+    if (!selectedModel) return;
+    onSubmit?.(value, { model: selectedModel });
     setValue("");
   };
 
@@ -53,7 +59,7 @@ export function ChatInput(props: ChatInputProps) {
       />
       <div className="flex items-center justify-between gap-2 px-3 py-2">
         <div>
-          <ModelSelect />
+          <ModelSelect selectedModel={selectedModel} onSelect={setSelectedModel} />
         </div>
         <Button
           variant="default"

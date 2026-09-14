@@ -13,10 +13,10 @@ import { getProviderIcon } from "../../utils/ai-model.util";
 
 export type ModelSelectProps = {
   selectedModel?: string | null;
-  onChange?: (model: string) => void;
+  onSelect?: (model: string) => void;
 };
 export function ModelSelect(props: ModelSelectProps) {
-  const { selectedModel, onChange } = props;
+  const { selectedModel, onSelect } = props;
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -28,14 +28,19 @@ export function ModelSelect(props: ModelSelectProps) {
         <PopoverTrigger
           className={cn(
             "text-sm font-semibold cursor-pointer",
-            "border-2 border-input rounded-xl p-1 px-2",
+            "border border-input rounded-xl p-1 px-2",
             "hover:border-ring/80 text-muted-foreground",
+            "focus-visible:outline-none",
             isOpen && "border-ring/80",
           )}
         >
-          Choose Model
+          {selectedModel ? (
+            <p className="text-sm font-semibold">{selectedModel}</p>
+          ) : (
+            <p className="text-sm font-semibold">Choose Model</p>
+          )}
         </PopoverTrigger>
-        <PopoverContent align="start" className="border border-input text-sm p-1 w-80">
+        <PopoverContent align="start" className="border border-input text-sm w-80 p-0">
           {error && (
             <div className="flex flex-col gap-2 items-center justify-center h-full w-full">
               <p className="text-sm text-center text-destructive">
@@ -49,7 +54,7 @@ export function ModelSelect(props: ModelSelectProps) {
           )}
           {!error && (
             <ScrollArea className="max-h-80">
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 p-2 pr-3">
                 {providers.map((provider) => {
                   const ProviderIcon = getProviderIcon(provider.providerName) ?? BotIcon;
                   return (
@@ -57,7 +62,7 @@ export function ModelSelect(props: ModelSelectProps) {
                       key={provider.id}
                       className={cn(
                         "flex flex-col bg-background/60 p-2 rounded-xl",
-                        "font-semibold",
+                        "font-semibold border border-input",
                       )}
                     >
                       <div className="flex items-center gap-2">
@@ -73,7 +78,10 @@ export function ModelSelect(props: ModelSelectProps) {
                               "hover:bg-muted/80 p-1.5 rounded-md",
                               selectedModel === model.modelName && "bg-muted/80",
                             )}
-                            onClick={() => onChange?.(model.modelName)}
+                            onClick={() => {
+                              onSelect?.(model.modelName);
+                              setIsOpen(false);
+                            }}
                           >
                             <p>{model.modelName}</p>
                           </div>

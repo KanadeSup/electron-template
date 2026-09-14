@@ -3,7 +3,7 @@ import { AssistantSelect } from "../assistant/components/assistant-select/assist
 import { AppLayout } from "../design-system/components/app-layout/app-layout";
 import { ScrollArea } from "../design-system/components/shadcn-ui/scroll-area";
 import { toast } from "../design-system/components/shadcn-ui/toast";
-import { ChatInput } from "./components/chat-input/chat-input";
+import { ChatInput, type ChatInputSubmitOptions } from "./components/chat-input/chat-input";
 import { ChatMessageList } from "./components/chat-message-list/chat-message-list";
 import { useChatController } from "./hooks/use-chat-controller";
 
@@ -17,7 +17,7 @@ export function ChatPage() {
     conversationId,
   });
 
-  const handleSubmit = async (message: string) => {
+  const handleSubmit = async (message: string, options: ChatInputSubmitOptions) => {
     let activeConversationId = conversationId;
     if (activeConversationId === null) {
       activeConversationId = await chatController.createConversation();
@@ -33,7 +33,7 @@ export function ChatPage() {
       navigate(`/chat/${activeConversationId}`);
     }
     chatController.sendMessage(activeConversationId, message, {
-      model: "gemini-2.5-flash",
+      model: options.model,
     });
   };
   return (
