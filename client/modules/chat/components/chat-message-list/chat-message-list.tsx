@@ -29,7 +29,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
   });
 
   return (
-    <div className="flex flex-col gap-2 px-10">
+    <div className="flex flex-col gap-2">
       {messages.map((message, index) => (
         <ChatMessageItem key={getListItemKey(message, index)} message={message} />
       ))}
