@@ -1,5 +1,6 @@
+import { useCommandStore } from "@client/modules/command/stores/command-store";
 import { useCallback, useEffect, useRef } from "react";
-import { getKeysFromEvent, matchKeybinding, stringifyShortcutKeys } from "../lib/keyboard";
+import { getKeysFromEvent, keysToSequence, matchKeybinding } from "../lib/keyboard";
 import { useKeyboardStore } from "../stores/keyboard-store";
 
 type KeyboardProviderProps = {
@@ -13,25 +14,30 @@ export function KeyboardProvider(props: KeyboardProviderProps) {
 
   const keybindings = useKeyboardStore((state) => state.keybindings);
   const actions = useKeyboardStore((state) => state.actions);
+  const dispatch = useCommandStore((state) => state.actions.dispatch);
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       const pressedKeys = getKeysFromEvent(event, { ignoreOnlyModifiers: true });
-      const sequenceString = stringifyShortcutKeys(pressedKeys);
-      const matchResult = matchKeybinding(sequenceString, keybindings);
-      if (matchResult.type === "none") return;
+      const sequence = keysToSequence(pressedKeys);
+
+      bufferRef.current.push(sequence);
+      const matchResult = matchKeybinding(keysToSequence(bufferRef.current), keybindings);
+      if (matchResult.type === "none") {
+        bufferRef.current = [];
+        return;
+      }
 
       event.preventDefault();
       event.stopPropagation();
 
       if (matchResult.type === "prefix") {
-        bufferRef.current.push(sequenceString);
         return;
       }
-      matchResult.keybinding;
-      console.log(matchKeybinding);
+      dispatch(matchResult.keybinding.commandId);
+      bufferRef.current = [];
     },
-    [keybindings],
+    [keybindings, dispatch],
   );
 
   useEffect(() => {

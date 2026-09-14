@@ -124,7 +124,7 @@ export function sortModifierKeys(keys: string[]): string[] {
 }
 
 /** Stringify an array of shortcut keys. */
-export function stringifyShortcutKeys(keys: string[]): string {
+export function keysToSequence(keys: string[]): string {
   return normalizeKeys(keys).join("");
 }
 

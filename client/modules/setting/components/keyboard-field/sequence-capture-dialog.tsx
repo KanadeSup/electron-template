@@ -7,8 +7,8 @@ import {
 } from "@client/modules/design-system/components/shadcn-ui/dialog";
 import {
   getKeysFromEvent,
+  keysToSequence,
   normalizeSequence,
-  stringifyShortcutKeys,
 } from "@client/modules/keyboard/lib/keyboard";
 import { cn } from "cn";
 import { useCallback, useEffect, useState } from "react";
@@ -56,7 +56,7 @@ export function SequenceCaptureDialog(props: SequenceCaptureDialogProps) {
       if (keys.length >= 4) return;
 
       const pressedKeys = getKeysFromEvent(event);
-      const pressedKeysString = stringifyShortcutKeys(pressedKeys);
+      const pressedKeysString = keysToSequence(pressedKeys);
 
       if (!pressedKeysString) return;
 
