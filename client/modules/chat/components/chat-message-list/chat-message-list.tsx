@@ -14,17 +14,30 @@ import "./chat-message.css";
 import { ThreeDot } from "@client/modules/design-system/components/animation/three-dot";
 
 export type ChatMessageListProps = {
+  loading?: boolean;
   messages: DisplayMessage[];
 };
 
 export function ChatMessageList(props: ChatMessageListProps) {
-  const { messages } = props;
+  const { loading, messages } = props;
+
+  const haveGeneratingMessage = messages.some((message) => {
+    if (message.type === "assistant" || message.type === "think") {
+      return message.isGenerating;
+    }
+    return false;
+  });
 
   return (
     <div className="flex flex-col gap-2 px-10">
       {messages.map((message, index) => (
         <ChatMessageItem key={getListItemKey(message, index)} message={message} />
       ))}
+      {loading && !haveGeneratingMessage && (
+        <div className="bg-secondary/60 rounded-lg w-fit px-2 py-2">
+          <Loader className="w-4 h-4 stroke-primary stroke-3 animate-spin" />
+        </div>
+      )}
     </div>
   );
 }
@@ -75,13 +88,13 @@ function ThinkingMessage(props: ThinkingMessageProps) {
   const shouldShowThinking = message.isGenerating || message.content;
   if (!shouldShowThinking) return null;
   return (
-    <div className="flex w-full flex-col gap-2 rounded-lg px-4 py-2 select-none">
+    <div className="flex w-full flex-col gap-2 rounded-lg select-none">
       <div
         className={cn(
-          "group bg-secondary/60 rounded-lg px-2 py-2 max-w-50",
+          "group rounded-lg py-1 w-fit",
           "flex items-center justify-between gap-2 text-sm",
           "transition-all duration-300",
-          "hover:border-foreground/25 border cursor-pointer",
+          "cursor-pointer",
         )}
         onClick={() => setIsExpanded(!isExpanded)}
       >
@@ -89,7 +102,7 @@ function ThinkingMessage(props: ThinkingMessageProps) {
           {message.isGenerating ? (
             <Loader className="w-4 h-4 stroke-primary stroke-3 animate-spin" />
           ) : (
-            <SparklesIcon className="w-4 h-4 stroke-blue-500/50 stroke-3" />
+            <SparklesIcon className="w-3.5 h-3.5 stroke-muted-foreground stroke-1" />
           )}
           {message.isGenerating ? (
             <p
@@ -110,7 +123,7 @@ function ThinkingMessage(props: ThinkingMessageProps) {
         <ChevronDownIcon
           className={cn(
             "w-4 h-4 stroke-foreground/50 group-hover:stroke-foreground/80",
-            "transition-all duration-300",
+            "transition-all duration-300 stroke-3",
             !isExpanded && "rotate-180",
           )}
         />
@@ -143,7 +156,7 @@ function AssistantMessage(props: AssistantMessageProps) {
   const { message } = props;
 
   return (
-    <div className={cn("flex w-full flex-col gap-2 rounded-lg px-4 py-2", "mb-20")}>
+    <div className={cn("flex w-full flex-col gap-2 rounded-lg", "mb-20")}>
       {!message.content && (
         <div
           className={cn(

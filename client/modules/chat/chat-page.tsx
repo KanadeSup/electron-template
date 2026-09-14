@@ -42,7 +42,10 @@ export function ChatPage() {
         <AssistantSelect />
       </div>
       <ScrollArea className="flex-1">
-        <ChatMessageList messages={chatController.displayMessages} />
+        <ChatMessageList
+          messages={chatController.displayMessages}
+          loading={chatController.isLoading}
+        />
       </ScrollArea>
       <div className="w-full flex flex-col justify-center items-center">
         <div className="w-[70%]">

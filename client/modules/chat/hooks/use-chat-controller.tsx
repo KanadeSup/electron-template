@@ -31,6 +31,11 @@ export function useChatController(params: ChatControllerParams) {
     return conversationMemories[conversationId]?.messages || [];
   }, [conversationMemories, conversationId]);
 
+  const isLoading = useMemo(() => {
+    if (!conversationId) return false;
+    return conversationMemories[conversationId]?.isReady === false;
+  }, [conversationId, conversationMemories]);
+
   const createConversation = async () => {
     const response = await createConversationApi();
     if (!response.success) {
@@ -308,6 +313,7 @@ export function useChatController(params: ChatControllerParams) {
 
   return {
     displayMessages,
+    isLoading,
     createConversation,
     sendMessage,
   };
