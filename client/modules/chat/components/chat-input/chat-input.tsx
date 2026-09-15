@@ -3,7 +3,7 @@ import { Button } from "@client/modules/design-system/components/shadcn-ui/butto
 import { Textarea } from "@client/modules/design-system/components/shadcn-ui/textarea";
 import { cn } from "cn";
 import { Loader2Icon, SendIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export type ChatInputSubmitOptions = {
   model: string;
@@ -12,11 +12,15 @@ export type ChatInputSubmitOptions = {
 export type ChatInputProps = {
   className?: string;
   placeholder?: string;
+  initialModel?: {
+    key: string | null;
+    value: string | null;
+  } | null;
   loading?: boolean;
   onSubmit?: (message: string, options: ChatInputSubmitOptions) => void;
 };
 export function ChatInput(props: ChatInputProps) {
-  const { className, placeholder, loading, onSubmit } = props;
+  const { className, placeholder, initialModel, loading, onSubmit } = props;
 
   const [isTextareaFocused, setIsTextareaFocused] = useState(false);
   const [value, setValue] = useState("");
@@ -28,6 +32,15 @@ export function ChatInput(props: ChatInputProps) {
     onSubmit?.(value, { model: selectedModel });
     setValue("");
   };
+
+  useEffect(() => {
+    if (initialModel?.value) {
+      setSelectedModel(initialModel.value);
+    }
+    // This is to prevent the eslint warning about the unused variable
+    // If any key or value changes, the useEffect will be triggered
+    void initialModel?.key;
+  }, [initialModel?.key, initialModel?.value]);
 
   return (
     <div

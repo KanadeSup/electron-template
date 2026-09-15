@@ -6,6 +6,7 @@ export type ConversationMemories = Record<ConversationId, ConversationMemory>;
 export type ConversationMemory = {
   /** Whether the conversation is ready to be used */
   isReady: boolean;
+  mostRecentlyModel: string | null;
   messages: DisplayMessage[];
 };
 
@@ -24,6 +25,7 @@ export function useConversationMemories() {
         ...latestConversationIds,
         [conversationId]: {
           isReady: memory.isReady,
+          mostRecentlyModel: memory.mostRecentlyModel,
           messages: memory.messages,
         },
       };

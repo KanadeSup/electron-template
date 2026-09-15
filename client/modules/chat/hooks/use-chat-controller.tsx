@@ -31,13 +31,18 @@ export function useChatController(params: ChatControllerParams) {
     return conversationMemories[conversationId]?.messages || [];
   }, [conversationMemories, conversationId]);
 
+  const mostRecentlyModel = useMemo(() => {
+    if (!conversationId) return null;
+    return conversationMemories[conversationId]?.mostRecentlyModel || null;
+  }, [conversationId, conversationMemories]);
+
   const isLoading = useMemo(() => {
     if (!conversationId) return false;
     return conversationMemories[conversationId]?.isReady === false;
   }, [conversationId, conversationMemories]);
 
-  const createConversation = async () => {
-    const response = await createConversationApi();
+  const createConversation = async (name: string, model: string) => {
+    const response = await createConversationApi({ name, model });
     if (!response.success) {
       Logger.scope(SCOPE).error(response.errorMessage || "Error creating conversation");
       return null;
@@ -49,6 +54,7 @@ export function useChatController(params: ChatControllerParams) {
     upsertConversationMemory(conversationId, {
       isReady: true,
       messages: [],
+      mostRecentlyModel: model,
     });
 
     return conversationId;
@@ -67,6 +73,7 @@ export function useChatController(params: ChatControllerParams) {
     upsertConversationMemory(conversationId, {
       isReady: false,
       messages: conversationMemory.messages,
+      mostRecentlyModel: options.model,
     });
 
     const response = await sendMessageApi({
@@ -81,6 +88,7 @@ export function useChatController(params: ChatControllerParams) {
       upsertConversationMemory(conversationId, {
         isReady: true,
         messages: currentMessages,
+        mostRecentlyModel: options.model,
       });
       Logger.scope(SCOPE).error("Failed to send message", response.errorMessage);
       toast.add({
@@ -118,6 +126,7 @@ export function useChatController(params: ChatControllerParams) {
 
       // Saved loaded messages to conversation memory
       const conversationMemory: ConversationMemory = {
+        mostRecentlyModel: resp.data.model,
         isReady: true,
         messages: resp.data.messages
           .map((message) => toDisplayMessage(message))
@@ -138,6 +147,7 @@ export function useChatController(params: ChatControllerParams) {
       if (!conversationMemory) return;
 
       upsertConversationMemory(conversationId, {
+        mostRecentlyModel: conversationMemory.mostRecentlyModel,
         isReady: conversationMemory.isReady,
         messages: [...conversationMemory.messages, message],
       });
@@ -166,6 +176,7 @@ export function useChatController(params: ChatControllerParams) {
       });
       upsertConversationMemory(conversationId, {
         isReady: conversationMemory.isReady,
+        mostRecentlyModel: conversationMemory.mostRecentlyModel,
         messages: newMessages,
       });
     },
@@ -189,6 +200,7 @@ export function useChatController(params: ChatControllerParams) {
       });
       upsertConversationMemory(conversationId, {
         isReady: conversationMemory.isReady,
+        mostRecentlyModel: conversationMemory.mostRecentlyModel,
         messages: newMessages,
       });
     },
@@ -210,6 +222,7 @@ export function useChatController(params: ChatControllerParams) {
 
       upsertConversationMemory(conversationId, {
         isReady: conversationMemory.isReady,
+        mostRecentlyModel: conversationMemory.mostRecentlyModel,
         messages: newMessages,
       });
     },
@@ -298,6 +311,7 @@ export function useChatController(params: ChatControllerParams) {
         case "event.end":
           upsertConversationMemory(response.conversationId, {
             isReady: true,
+            mostRecentlyModel: conversationMemory.mostRecentlyModel,
             messages: conversationMemory.messages,
           });
           break;
@@ -313,6 +327,7 @@ export function useChatController(params: ChatControllerParams) {
 
   return {
     displayMessages,
+    mostRecentlyModel,
     isLoading,
     createConversation,
     sendMessage,

@@ -29,7 +29,10 @@ export type GetConversationByIdResponse = {
 
 // Create a new conversation channel
 export const CREATE_CONVERSATION_CHANNEL_NAME = "create-conversation";
-export type CreateConversationRequest = null;
+export type CreateConversationRequest = {
+  name: string;
+  model: string;
+};
 
 export type CreateConversationResponse = {
   conversationId: number;

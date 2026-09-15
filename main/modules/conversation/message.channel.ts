@@ -155,6 +155,11 @@ export const sendMessageChannel = createSenderChannel<SendMessageRequest, SendMe
         return null;
       }
 
+      // Save recent model
+      conversationService.updateConversation(request.conversationId, {
+        model: request.model,
+      });
+
       // Create user message
       const userMessage = messageService.createMessage({
         conversationId: request.conversationId,

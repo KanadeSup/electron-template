@@ -67,9 +67,12 @@ export const createConversationChannel = createChannel<
   CreateConversationResponse
 >({
   name: CREATE_CONVERSATION_CHANNEL_NAME,
-  handle: async () => {
+  handle: async (request) => {
     const conversationService = new ConversationService();
-    const conversationId = conversationService.createConversation();
+    const conversationId = conversationService.createConversation({
+      name: request.name,
+      model: request.model,
+    });
 
     return {
       conversationId,

@@ -28,10 +28,10 @@ export async function getConversationById(params: GetConversationByIdRequest) {
   );
 }
 
-export async function createConversation() {
+export async function createConversation(params: CreateConversationRequest) {
   return invoke<CreateConversationRequest, CreateConversationResponse>(
     CREATE_CONVERSATION_CHANNEL_NAME,
-    null,
+    params,
   );
 }
 

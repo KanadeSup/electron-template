@@ -79,7 +79,7 @@ export class ConversationRepository {
     };
   }
 
-  createConversation(conversation: CreateConversationInputDto): number {
+  createConversation(dto: CreateConversationInputDto): number {
     const schema = z.object({
       id: z.number(),
     });
@@ -89,7 +89,7 @@ export class ConversationRepository {
         VALUES (?, ?, ?)
         RETURNING id
       `)
-      .get(conversation.name ?? "", conversation.model ?? null, conversation.history ?? null);
+      .get(dto.name ?? "", dto.model ?? null, dto.history ?? null);
 
     const parsedResult = parseSchema(result, schema);
 

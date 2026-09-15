@@ -26,7 +26,7 @@ export function ConversationList(props: ConversationListProps) {
           )}
           onClick={() => onSelect?.(conversation.id)}
         >
-          <p className="truncate">{conversation.createdAt}</p>
+          <p className="truncate">{conversation.name}</p>
           <Button
             variant="ghost"
             size="icon-xs"

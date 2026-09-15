@@ -1,6 +1,7 @@
 import type {
   ConversationDto,
   ConversationListItemDto,
+  CreateConversationInputDto,
   DeleteConversationInputDto,
   UpdateConversationInputDto,
 } from "../dto/conversation.dto";
@@ -19,10 +20,8 @@ export class ConversationService {
     return conversation;
   }
 
-  createConversation(): number {
-    const conversationId = this.conversationRepository.createConversation({
-      name: "",
-    });
+  createConversation(dto: CreateConversationInputDto): number {
+    const conversationId = this.conversationRepository.createConversation(dto);
     return conversationId;
   }
 

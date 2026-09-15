@@ -3,6 +3,7 @@ import { AssistantSelect } from "../assistant/components/assistant-select/assist
 import { AppLayout } from "../design-system/components/app-layout/app-layout";
 import { ScrollArea } from "../design-system/components/shadcn-ui/scroll-area";
 import { toast } from "../design-system/components/shadcn-ui/toast";
+import { truncate } from "../design-system/lib/utils";
 import { ChatInput, type ChatInputSubmitOptions } from "./components/chat-input/chat-input";
 import { ChatMessageList } from "./components/chat-message-list/chat-message-list";
 import { ConversationList } from "./components/conversation-list/conversation-list";
@@ -23,7 +24,10 @@ export function ChatPage() {
   const handleSubmit = async (message: string, options: ChatInputSubmitOptions) => {
     let activeConversationId = conversationId;
     if (activeConversationId === null) {
-      activeConversationId = await chatController.createConversation();
+      activeConversationId = await chatController.createConversation(
+        messageToConversationName(message),
+        options.model,
+      );
       if (!activeConversationId) {
         toast.add({
           type: "error",
@@ -91,9 +95,32 @@ export function ChatPage() {
       </ScrollArea>
       <div className="absolute bottom-0 w-full flex justify-center">
         <div className="max-w-250 w-full px-4">
-          <ChatInput placeholder="Ask me anything..." onSubmit={handleSubmit} />
+          <ChatInput
+            placeholder="Ask me anything..."
+            initialModel={{
+              key: conversationId?.toString() ?? null,
+              value: chatController.mostRecentlyModel,
+            }}
+            onSubmit={handleSubmit}
+          />
         </div>
       </div>
     </AppLayout>
   );
+}
+
+function messageToConversationName(message: string): string {
+  // Replace all newlines with spaces
+  message = message.replace(/\n/g, " ");
+
+  // replace all tab with spaces
+  message = message.replace(/\t/g, " ");
+
+  // Replace all multiple spaces with a single space
+  message = message.replace(/\s+/g, " ");
+
+  // Replace all leading and trailing spaces with a single space
+  message = message.trim();
+
+  return truncate(message, 100);
 }
