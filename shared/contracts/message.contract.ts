@@ -67,6 +67,7 @@ export const SEND_MESSAGE_CHANNEL_NAME = "send-message";
 export enum SendMessageEventErrorCodeEnum {
   MODEL_NOT_FOUND = "model-not-found",
   API_KEY_NOT_FOUND = "api-key-not-found",
+  CONVERSATION_NOT_FOUND = "conversation-not-found",
 }
 
 export type SendMessageEventErrorCode = `${SendMessageEventErrorCodeEnum}`;

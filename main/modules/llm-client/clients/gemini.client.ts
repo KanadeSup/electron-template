@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, type Interactions } from "@google/genai";
 import { ApiKeyService } from "@main/modules/ai-model/services/api-key.service";
 import Logger from "electron-log/main.js";
 import { KeyNotFoundError } from "../errors/key-not-found.error";
@@ -12,8 +12,12 @@ import type {
 } from "../types/llm-client.type";
 import type { LLMClient } from "./llm-client.inteface";
 
-const SCOPE = "GeminiClient";
+type StreamState = {
+  currentStep: Interactions.Step | null;
+  history: Interactions.Step[];
+};
 
+const SCOPE = "GeminiClient";
 export class GeminiClient implements LLMClient {
   readonly name = "gemini" as const;
   private readonly client: GoogleGenAI;
@@ -75,12 +79,16 @@ export class GeminiClient implements LLMClient {
     input: GenerateTextInput,
     options: GenerateTextOptions,
   ): AsyncGenerator<GenerateTextStreamOutput> {
-    const history = options.history ?? [];
+    const history: Interactions.Step[] = options.history ?? [];
+    history.push({
+      type: "user_input",
+      content: [{ type: "text", text: input }],
+    });
 
     const stream = await this.client.interactions.create({
       model: options.model,
       store: false,
-      input: input,
+      input: history,
       stream: true,
       generation_config: {
         max_output_tokens: options.maxTokens,
@@ -88,63 +96,26 @@ export class GeminiClient implements LLMClient {
       },
     });
 
-    let isThinking = false;
-    let isGenerating = false;
+    const streamState: StreamState = {
+      currentStep: null,
+      history: [],
+    };
     for await (const event of stream) {
+      Logger.scope(SCOPE).info("Stream Event", event);
       // Start event
-      if (event.event_type === "step.start") {
-        if (event.step.type === "thought") {
-          yield { type: "thinking.start" };
-          isThinking = true;
-        }
-        if (event.step.type === "model_output") {
-          yield { type: "model_output.start" };
-          isGenerating = true;
-        }
-      }
-
-      // Delta event
-      if (event.event_type === "step.delta") {
-        // Thinking delta
-        if (event.delta.type === "thought_summary") {
-          if (event.delta.content?.type !== "text") continue;
-          yield {
-            type: "thinking.delta",
-            text: event.delta.content.text,
-          };
-        }
-
-        // Model output delta
-        if (event.delta.type === "text") {
-          yield {
-            type: "model_output.delta",
-            text: event.delta.text,
-          };
-        }
-      }
-
-      // End event
-      if (event.event_type === "step.stop") {
-        if (isThinking) {
-          isThinking = false;
-          yield { type: "thinking.end" };
-        }
-        if (isGenerating) {
-          isGenerating = false;
-          yield { type: "model_output.end" };
-        }
-      }
-
-      // Complete event
-      if (event.event_type === "interaction.completed") {
-        const usage = event.interaction.usage;
-        yield {
-          type: "interaction.completed",
-          inputTokens: usage?.total_input_tokens,
-          outputTokens: usage?.total_output_tokens,
-          thinkingTokens: usage?.total_thought_tokens,
-          history: event.interaction.steps,
-        };
+      switch (event.event_type) {
+        case "step.start":
+          yield* this.handleStepStart(event, streamState);
+          break;
+        case "step.delta":
+          yield* this.handleStepDelta(event, streamState);
+          break;
+        case "step.stop":
+          yield* this.handleStepStop(event, streamState);
+          break;
+        case "interaction.completed":
+          yield* this.handleInteractionCompleted(event, streamState);
+          break;
       }
     }
   }
@@ -195,5 +166,132 @@ export class GeminiClient implements LLMClient {
 
   getApiKey(): string | null {
     return this.apiKeyService.getApiKeyByProviderName("gemini");
+  }
+
+  private *handleStepStart(
+    event: Interactions.StepStart,
+    streamState: StreamState,
+  ): Generator<GenerateTextStreamOutput> {
+    switch (event.step.type) {
+      case "thought":
+        yield { type: "thinking.start" };
+        streamState.currentStep = {
+          type: "thought",
+        };
+        break;
+
+      case "model_output":
+        yield { type: "model_output.start" };
+        streamState.currentStep = {
+          type: "model_output",
+        };
+        break;
+      default:
+        Logger.scope(SCOPE).warn("Unknown start step type", event.step.type);
+        break;
+    }
+  }
+
+  private *handleStepDelta(
+    event: Interactions.StepDelta,
+    streamState: StreamState,
+  ): Generator<GenerateTextStreamOutput> {
+    switch (event.delta.type) {
+      case "thought_summary":
+        if (streamState.currentStep?.type !== "thought") {
+          Logger.scope(SCOPE).error(
+            `The delta is 'thought_summary' but the current step is ${streamState.currentStep?.type ?? "null"}`,
+          );
+          break;
+        }
+        if (!event.delta.content) break;
+        if (event.delta.content.type === "text") {
+          yield { type: "thinking.delta", text: event.delta.content.text };
+
+          // Update stream state for thinking summary
+          const lastestSumary = streamState.currentStep.summary?.at(-1);
+          if (lastestSumary?.type !== "text") {
+            streamState.currentStep.summary = [
+              {
+                type: "text",
+                text: event.delta.content.text,
+              },
+            ];
+            break;
+          }
+          lastestSumary.text += event.delta.content.text;
+        }
+        break;
+      case "thought_signature":
+        if (streamState.currentStep?.type !== "thought") {
+          Logger.scope(SCOPE).error(
+            `The delta is 'thought_signature' but the current step is ${streamState.currentStep?.type ?? "null"}`,
+          );
+          break;
+        }
+
+        streamState.currentStep.signature = event.delta.signature;
+        break;
+      case "text": {
+        if (streamState.currentStep?.type !== "model_output") {
+          Logger.scope(SCOPE).error(
+            `The delta is 'text' but the current step is ${streamState.currentStep?.type ?? "null"}`,
+          );
+          break;
+        }
+        yield { type: "model_output.delta", text: event.delta.text };
+        const latestContent = streamState.currentStep.content?.at(-1);
+        if (latestContent?.type !== "text") {
+          streamState.currentStep.content = [
+            {
+              type: "text",
+              text: event.delta.text,
+            },
+          ];
+        } else {
+          latestContent.text += event.delta.text;
+        }
+        break;
+      }
+      default:
+        Logger.scope(SCOPE).warn("Unknown step delta type:", event.delta.type);
+        break;
+    }
+  }
+
+  private *handleStepStop(
+    _event: Interactions.StepStop,
+    streamState: StreamState,
+  ): Generator<GenerateTextStreamOutput> {
+    if (!streamState.currentStep) return;
+
+    switch (streamState.currentStep.type) {
+      case "thought":
+        yield { type: "thinking.end" };
+        streamState.history.push(streamState.currentStep);
+        break;
+      case "model_output":
+        yield { type: "model_output.end" };
+        streamState.history.push(streamState.currentStep);
+        break;
+      default:
+        Logger.scope(SCOPE).warn("Unknown step stop type", streamState.currentStep.type);
+        break;
+    }
+  }
+
+  private *handleInteractionCompleted(
+    event: Interactions.InteractionCompletedEvent,
+    streamState: StreamState,
+  ): Generator<GenerateTextStreamOutput> {
+    yield { type: "interaction.completed" };
+    const usage = event.interaction.usage;
+    yield {
+      type: "interaction.completed",
+      inputTokens: usage?.total_input_tokens,
+      outputTokens: usage?.total_output_tokens,
+      thinkingTokens: usage?.total_thought_tokens,
+      history: streamState.history,
+    };
   }
 }

@@ -98,17 +98,29 @@ export class ConversationRepository {
 
   updateConversation(id: number, conversation: UpdateConversationInputDto): boolean {
     const { name, model, history } = conversation;
-    if (name === undefined && model === undefined && history === undefined) {
-      return false;
+
+    const updateFields = [];
+    const updateValues = [];
+    if (name !== undefined) {
+      updateFields.push(`name = ?`);
+      updateValues.push(name);
+    }
+    if (model !== undefined) {
+      updateFields.push(`model = ?`);
+      updateValues.push(model);
+    }
+    if (history !== undefined) {
+      updateFields.push(`history = ?`);
+      updateValues.push(history);
     }
 
     const result = this.db
       .prepare(`
         UPDATE conversations
-        SET name = '${name}', model = '${model}', history = '${history}' 
-        WHERE id = ${id}
+        SET ${updateFields.join(", ")}
+        WHERE id = ?
       `)
-      .run();
+      .run(...updateValues, id);
 
     return result.changes > 0;
   }

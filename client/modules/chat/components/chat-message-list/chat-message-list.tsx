@@ -16,10 +16,11 @@ import { ThreeDot } from "@client/modules/design-system/components/animation/thr
 export type ChatMessageListProps = {
   loading?: boolean;
   messages: DisplayMessage[];
+  className?: string;
 };
 
 export function ChatMessageList(props: ChatMessageListProps) {
-  const { loading, messages } = props;
+  const { loading, messages, className } = props;
 
   const haveGeneratingMessage = messages.some((message) => {
     if (message.type === "assistant" || message.type === "think") {
@@ -29,7 +30,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
   });
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className={cn("flex flex-col gap-2", className)}>
       {messages.map((message, index) => (
         <ChatMessageItem key={getListItemKey(message, index)} message={message} />
       ))}

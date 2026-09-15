@@ -2,7 +2,7 @@ import type {
   ConversationDto,
   ConversationListItemDto,
   DeleteConversationInputDto,
-  GetConversationByIdInputDto,
+  UpdateConversationInputDto,
 } from "../dto/conversation.dto";
 import { ConversationRepository } from "../repositories/conversation.repository";
 
@@ -14,8 +14,8 @@ export class ConversationService {
     return conversations;
   }
 
-  getConversationById(dto: GetConversationByIdInputDto): ConversationDto | null {
-    const conversation = this.conversationRepository.getConversationById(dto.conversationId);
+  getConversationById(conversationId: number): ConversationDto | null {
+    const conversation = this.conversationRepository.getConversationById(conversationId);
     return conversation;
   }
 
@@ -24,6 +24,10 @@ export class ConversationService {
       name: "",
     });
     return conversationId;
+  }
+
+  updateConversation(conversationId: number, dto: UpdateConversationInputDto): boolean {
+    return this.conversationRepository.updateConversation(conversationId, dto);
   }
 
   deleteConversation(dto: DeleteConversationInputDto): boolean {

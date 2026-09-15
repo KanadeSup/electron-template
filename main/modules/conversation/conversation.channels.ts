@@ -41,9 +41,7 @@ export const getConversationByIdChannel = createChannel<
   name: GET_CONVERSATION_BY_ID_CHANNEL_NAME,
   handle: async (request) => {
     const conversationService = new ConversationService();
-    const conversation = conversationService.getConversationById({
-      conversationId: request.conversationId,
-    });
+    const conversation = conversationService.getConversationById(request.conversationId);
 
     if (!conversation) throw new NotFoundError("Conversation not found");
 

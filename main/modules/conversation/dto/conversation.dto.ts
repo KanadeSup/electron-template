@@ -27,10 +27,6 @@ export type UpdateConversationInputDto = {
   history?: string;
 };
 
-export type GetConversationByIdInputDto = {
-  conversationId: number;
-};
-
 export type DeleteConversationInputDto = {
   conversationId: number;
 };

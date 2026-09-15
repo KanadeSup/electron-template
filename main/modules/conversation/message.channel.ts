@@ -26,6 +26,7 @@ import { AIModelService } from "../ai-model/services/ai-model.service";
 import { NotFoundError } from "../common/errors/common.error";
 import { createChannel, createSenderChannel } from "../common/ipc-channel/base-channel";
 import { LLMClientFactory } from "../llm-client/factories/llm-client.factory";
+import { ConversationService } from "./services/conversation.service";
 import { MessageService } from "./services/message.service";
 
 export const getMessageListChannel = createChannel<GetMessageListRequest, GetMessageListResponse>({
@@ -105,7 +106,7 @@ export const sendMessageChannel = createSenderChannel<SendMessageRequest, SendMe
     const SEND_MESSAGE_CHANNEL_SCOPE = "sendMessageChannel";
     const messageService = new MessageService();
     const modelService = new AIModelService();
-
+    const conversationService = new ConversationService();
     const dispatchErrorAndEnd = (
       errorMessageStr: string,
       errorCode?: SendMessageEventErrorCodeEnum,
@@ -172,9 +173,21 @@ export const sendMessageChannel = createSenderChannel<SendMessageRequest, SendMe
         },
       });
 
+      const conversation = conversationService.getConversationById(request.conversationId);
+      if (!conversation) {
+        dispatchErrorAndEnd(
+          "Conversation not found",
+          SendMessageEventErrorCodeEnum.CONVERSATION_NOT_FOUND,
+        );
+        return null;
+      }
+
+      const history = conversation.history ? JSON.parse(conversation.history) : [];
+
       // Stream events from LLM client
       const stream = llmClient.generateTextStream(userMessage.content, {
         model: model.modelName,
+        history: history,
       });
       let thinkingContent = "";
       let modelOutputContent = "";
@@ -254,7 +267,7 @@ export const sendMessageChannel = createSenderChannel<SendMessageRequest, SendMe
             });
             break;
           }
-          case "interaction.completed":
+          case "interaction.completed": {
             sender<OnSendMessageEventResponse>(SEND_MESSAGE_EVENT_NAME, {
               conversationId: request.conversationId,
               type: "event.end",
@@ -264,7 +277,12 @@ export const sendMessageChannel = createSenderChannel<SendMessageRequest, SendMe
                 thinkingTokens: event.thinkingTokens,
               },
             });
+            const stringifiedHistory = JSON.stringify(event.history ?? []);
+            conversationService.updateConversation(request.conversationId, {
+              history: stringifiedHistory,
+            });
             break;
+          }
         }
       }
     } catch (error) {

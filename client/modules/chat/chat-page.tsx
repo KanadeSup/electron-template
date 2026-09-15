@@ -42,11 +42,12 @@ export function ChatPage() {
         <AssistantSelect />
       </div>
       <ScrollArea className="flex-1">
-        <div className="flex flex-col items-center w-full">
-          <div className="max-w-250 w-full relative px-4">
+        <div className="flex flex-col items-center w-full h-full">
+          <div className="max-w-250 w-full relative px-4 h-full">
             <ChatMessageList
               messages={chatController.displayMessages}
               loading={chatController.isLoading}
+              className="h-full"
             />
             <div className="sticky bottom-0 w-full">
               <ChatInput placeholder="Ask me anything..." onSubmit={handleSubmit} />
