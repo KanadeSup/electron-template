@@ -39,6 +39,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
           <Loader className="w-4 h-4 stroke-primary stroke-3 animate-spin" />
         </div>
       )}
+      <div className="py-14"></div>
     </div>
   );
 }

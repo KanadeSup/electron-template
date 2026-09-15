@@ -1,14 +1,16 @@
 import { cn } from "cn";
 import { Sidebar } from "lucide-react";
 import { Button } from "../shadcn-ui/button";
+import { ScrollArea } from "../shadcn-ui/scroll-area";
 import { ActionList } from "./action-list";
 
 export type AppSidebarProps = {
   className?: string;
+  list?: React.ReactNode;
 };
 
 export function AppSidebar(props: AppSidebarProps) {
-  const { className } = props;
+  const { className, list } = props;
 
   return (
     <div
@@ -29,6 +31,9 @@ export function AppSidebar(props: AppSidebarProps) {
       <div>
         <ActionList />
       </div>
+      <ScrollArea className="flex-1">
+        <div className="h-full">{list}</div>
+      </ScrollArea>
     </div>
   );
 }

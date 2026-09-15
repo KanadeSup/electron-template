@@ -6,9 +6,10 @@ import { AppSidebar } from "../app-sidebar/app-sidebar";
 export interface AppLayoutProps {
   children: React.ReactNode;
   className?: string;
+  list?: React.ReactNode;
 }
 
-export function AppLayout({ children, className }: AppLayoutProps) {
+export function AppLayout({ children, className, list }: AppLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const handleToggleSidebar = useCallback(() => {
@@ -20,7 +21,7 @@ export function AppLayout({ children, className }: AppLayoutProps) {
   return (
     <div className="w-screen h-screen flex p-2 gap-4">
       <div className={cn("w-64 shrink-0", isSidebarOpen ? "block" : "hidden")}>
-        <AppSidebar />
+        <AppSidebar list={list} />
       </div>
       <div className={cn("flex-1 shrink-0 overflow-hidden", className)}>{children}</div>
     </div>
