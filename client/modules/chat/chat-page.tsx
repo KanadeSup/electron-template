@@ -1,21 +1,18 @@
 import { useNavigate, useParams } from "react-router";
 import { AssistantSelect } from "../assistant/components/assistant-select/assistant-select";
-import { AppLayout } from "../design-system/components/app-layout/app-layout";
 import { ScrollArea } from "../design-system/components/shadcn-ui/scroll-area";
 import { toast } from "../design-system/components/shadcn-ui/toast";
 import { truncate } from "../design-system/lib/utils";
 import { ChatInput, type ChatInputSubmitOptions } from "./components/chat-input/chat-input";
+import { ChatLayout } from "./components/chat-layout/chat-layout";
 import { ChatMessageList } from "./components/chat-message-list/chat-message-list";
-import { ConversationList } from "./components/conversation-list/conversation-list";
 import { useChatController } from "./hooks/use-chat-controller";
-import { useDeleteConversation } from "./hooks/use-delete-conversation";
 
 export function ChatPage() {
   const params = useParams();
   const conversationId = params.conversationId ? Number(params.conversationId) : null;
 
   const navigate = useNavigate();
-  const deleteConversationMutation = useDeleteConversation();
 
   const chatController = useChatController({
     conversationId,
@@ -44,41 +41,14 @@ export function ChatPage() {
     });
   };
 
-  const handleSelect = (id: number) => {
-    navigate(`/chat/${id}`);
-  };
-
-  const handleDelete = (id: number) => {
-    deleteConversationMutation.mutate(
-      { conversationId: id },
-      {
-        onSuccess: () => {
-          if (conversationId === id) {
-            navigate("/chat");
-          }
-        },
-        onError: () => {
-          toast.add({
-            type: "error",
-            title: "Error deleting conversation",
-            description: "Please try again or check logs for more details.",
-          });
-        },
-      },
-    );
+  const handleDeleted = (id: number) => {
+    if (conversationId === id) {
+      navigate("/chat");
+    }
   };
 
   return (
-    <AppLayout
-      className="flex flex-col gap-3 relative"
-      list={
-        <ConversationList
-          selectedId={conversationId}
-          onSelect={handleSelect}
-          onDelete={handleDelete}
-        />
-      }
-    >
+    <ChatLayout className="flex flex-col gap-3 relative" onDeleted={handleDeleted}>
       <div className="w-full">
         <AssistantSelect />
       </div>
@@ -105,7 +75,7 @@ export function ChatPage() {
           />
         </div>
       </div>
-    </AppLayout>
+    </ChatLayout>
   );
 }
 
