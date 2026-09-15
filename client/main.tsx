@@ -5,6 +5,7 @@ import { ChatPage } from "./modules/chat/chat-page";
 import { Toaster } from "./modules/design-system/components/shadcn-ui/toast";
 import { TooltipProvider } from "./modules/design-system/components/shadcn-ui/tooltip";
 import { KeyboardProvider } from "./modules/keyboard/providers/keyboard-provider";
+import { RoutePersistance } from "./modules/persist-state/components/route-persistance/route-persistance";
 import { SettingPage } from "./modules/setting/setting-page";
 
 const root = document.getElementById("root");
@@ -15,6 +16,7 @@ const queryClient = new QueryClient();
 createRoot(root).render(
   <BrowserRouter>
     <QueryClientProvider client={queryClient}>
+      <RoutePersistance />
       <KeyboardProvider>
         <Toaster />
         <TooltipProvider>

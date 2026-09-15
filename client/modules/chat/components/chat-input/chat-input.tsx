@@ -1,6 +1,7 @@
 import { ModelSelect } from "@client/modules/ai-model/components/model-select/model-select";
 import { Button } from "@client/modules/design-system/components/shadcn-ui/button";
 import { Textarea } from "@client/modules/design-system/components/shadcn-ui/textarea";
+import { usePersistStateStore } from "@client/modules/persist-state/stores/persist-state-store";
 import { cn } from "cn";
 import { Loader2Icon, SendIcon } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -24,7 +25,11 @@ export function ChatInput(props: ChatInputProps) {
 
   const [isTextareaFocused, setIsTextareaFocused] = useState(false);
   const [value, setValue] = useState("");
-  const [selectedModel, setSelectedModel] = useState<string | null>(null);
+
+  const defaultModel = usePersistStateStore((state) => state.selectedModel);
+  const [selectedModel, setSelectedModel] = useState<string | null>(defaultModel ?? null);
+
+  const persistStateActions = usePersistStateStore((state) => state.actions);
 
   const handleSubmit = () => {
     if (loading) return;
@@ -72,7 +77,13 @@ export function ChatInput(props: ChatInputProps) {
       />
       <div className="flex items-center justify-between gap-2 px-3 py-2">
         <div>
-          <ModelSelect selectedModel={selectedModel} onSelect={setSelectedModel} />
+          <ModelSelect
+            selectedModel={selectedModel}
+            onSelect={(model) => {
+              setSelectedModel(model);
+              persistStateActions.setSelectedModel(model);
+            }}
+          />
         </div>
         <Button
           variant="default"

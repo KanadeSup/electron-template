@@ -1,4 +1,5 @@
 import { useSubscribeCommand } from "@client/modules/command/stores/command-store";
+import { usePersistStateStore } from "@client/modules/persist-state/stores/persist-state-store";
 import { cn } from "cn";
 import { useCallback, useState } from "react";
 import { AppSidebar } from "../app-sidebar/app-sidebar";
@@ -10,11 +11,16 @@ export interface AppLayoutProps {
 }
 
 export function AppLayout({ children, className, list }: AppLayoutProps) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const defaultIsSidebarOpen = usePersistStateStore((state) => state.isSidebarOpen);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(defaultIsSidebarOpen ?? true);
+  const persistStateActions = usePersistStateStore((state) => state.actions);
 
   const handleToggleSidebar = useCallback(() => {
-    setIsSidebarOpen((prev) => !prev);
-  }, []);
+    setIsSidebarOpen((prev) => {
+      persistStateActions.setIsSidebarOpen(!prev);
+      return !prev;
+    });
+  }, [persistStateActions]);
 
   useSubscribeCommand("app-sidebar.toggle", handleToggleSidebar);
 
