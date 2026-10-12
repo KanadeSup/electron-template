@@ -54,7 +54,7 @@ export function ChatPage() {
       </div>
       <ScrollArea className="flex-1">
         <div className="flex flex-col items-center w-full h-full">
-          <div className="max-w-250 w-full px-4 h-full">
+          <div className="max-w-325 w-full px-4 h-full">
             <ChatMessageList
               messages={chatController.displayMessages}
               loading={chatController.isLoading}
@@ -64,7 +64,7 @@ export function ChatPage() {
         </div>
       </ScrollArea>
       <div className="absolute bottom-0 w-full flex justify-center">
-        <div className="max-w-250 w-full px-4">
+        <div className="max-w-325 w-full px-4">
           <ChatInput
             placeholder="Ask me anything..."
             initialModel={{
