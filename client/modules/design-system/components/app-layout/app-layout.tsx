@@ -2,6 +2,7 @@ import { useSubscribeCommand } from "@client/modules/command/stores/command-stor
 import { usePersistStateStore } from "@client/modules/persist-state/stores/persist-state-store";
 import { cn } from "cn";
 import { useCallback, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { AppSidebar } from "../app-sidebar/app-sidebar";
 import { HorizontalResizablePanel } from "../resizable/horizontal-resizable-panel";
 
@@ -12,7 +13,13 @@ export interface AppLayoutProps {
 }
 
 export function AppLayout({ children, className, list }: AppLayoutProps) {
-  const defaultIsSidebarOpen = usePersistStateStore((state) => state.isSidebarOpen);
+  const { isSidebarOpen: defaultIsSidebarOpen, sidebarWidth: defaultSidebarWidth } =
+    usePersistStateStore(
+      useShallow((state) => ({
+        isSidebarOpen: state.isSidebarOpen,
+        sidebarWidth: state.sidebarWidth,
+      })),
+    );
   const [isSidebarOpen, setIsSidebarOpen] = useState(defaultIsSidebarOpen ?? true);
   const persistStateActions = usePersistStateStore((state) => state.actions);
 
@@ -29,11 +36,12 @@ export function AppLayout({ children, className, list }: AppLayoutProps) {
     <div className="w-screen h-screen flex p-2 gap-4">
       <div className={cn("shrink-0", isSidebarOpen ? "block" : "hidden")}>
         <HorizontalResizablePanel
-          defaultSize={250}
+          defaultSize={defaultSidebarWidth ?? 250}
           minSize={200}
           maxSize={500}
           className="h-full"
           handleGap={5}
+          onFinishResized={(size) => persistStateActions.setSidebarWidth(size)}
         >
           <AppSidebar list={list} className="max-w-full" />
         </HorizontalResizablePanel>
