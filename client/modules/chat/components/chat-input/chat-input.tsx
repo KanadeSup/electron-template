@@ -10,26 +10,27 @@ export type ChatInputSubmitOptions = {
   model: string;
 };
 
+export type ChatInputInitialModel = {
+  key: string | null;
+  value: string | null;
+};
+
 export type ChatInputProps = {
   className?: string;
   placeholder?: string;
-  initialModel?: {
-    key: string | null;
-    value: string | null;
-  } | null;
+  initialModel?: ChatInputInitialModel | null;
   loading?: boolean;
   onSubmit?: (message: string, options: ChatInputSubmitOptions) => void;
+  onModelChange?: (model: string) => void;
 };
 export function ChatInput(props: ChatInputProps) {
-  const { className, placeholder, initialModel, loading, onSubmit } = props;
+  const { className, placeholder, initialModel, loading, onSubmit, onModelChange } = props;
 
   const [isTextareaFocused, setIsTextareaFocused] = useState(false);
   const [value, setValue] = useState("");
 
   const defaultModel = usePersistStateStore((state) => state.selectedModel);
   const [selectedModel, setSelectedModel] = useState<string | null>(defaultModel ?? null);
-
-  const persistStateActions = usePersistStateStore((state) => state.actions);
 
   const handleSubmit = () => {
     if (loading) return;
@@ -81,7 +82,7 @@ export function ChatInput(props: ChatInputProps) {
             selectedModel={selectedModel}
             onSelect={(model) => {
               setSelectedModel(model);
-              persistStateActions.setSelectedModel(model);
+              onModelChange?.(model);
             }}
           />
         </div>

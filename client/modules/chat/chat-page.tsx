@@ -3,6 +3,7 @@ import { AssistantSelect } from "../assistant/components/assistant-select/assist
 import { ScrollArea } from "../design-system/components/shadcn-ui/scroll-area";
 import { toast } from "../design-system/components/shadcn-ui/toast";
 import { truncate } from "../design-system/lib/utils";
+import { usePersistStateStore } from "../persist-state/stores/persist-state-store";
 import { ChatInput, type ChatInputSubmitOptions } from "./components/chat-input/chat-input";
 import { ChatLayout } from "./components/chat-layout/chat-layout";
 import { ChatMessageList } from "./components/chat-message-list/chat-message-list";
@@ -13,6 +14,7 @@ export function ChatPage() {
   const conversationId = params.conversationId ? Number(params.conversationId) : null;
 
   const navigate = useNavigate();
+  const persistStateActions = usePersistStateStore((state) => state.actions);
 
   const chatController = useChatController({
     conversationId,
@@ -72,6 +74,7 @@ export function ChatPage() {
               value: chatController.mostRecentlyModel,
             }}
             onSubmit={handleSubmit}
+            onModelChange={(model) => persistStateActions.setSelectedModel(model)}
           />
         </div>
       </div>
