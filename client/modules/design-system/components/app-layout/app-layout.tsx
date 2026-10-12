@@ -3,6 +3,7 @@ import { usePersistStateStore } from "@client/modules/persist-state/stores/persi
 import { cn } from "cn";
 import { useCallback, useState } from "react";
 import { AppSidebar } from "../app-sidebar/app-sidebar";
+import { HorizontalResizablePanel } from "../resizable/horizontal-resizable-panel";
 
 export interface AppLayoutProps {
   children: React.ReactNode;
@@ -26,8 +27,16 @@ export function AppLayout({ children, className, list }: AppLayoutProps) {
 
   return (
     <div className="w-screen h-screen flex p-2 gap-4">
-      <div className={cn("w-64 shrink-0", isSidebarOpen ? "block" : "hidden")}>
-        <AppSidebar list={list} />
+      <div className={cn("shrink-0", isSidebarOpen ? "block" : "hidden")}>
+        <HorizontalResizablePanel
+          defaultSize={250}
+          minSize={200}
+          maxSize={500}
+          className="h-full"
+          handleGap={5}
+        >
+          <AppSidebar list={list} className="max-w-full" />
+        </HorizontalResizablePanel>
       </div>
       <div className={cn("flex-1 shrink-0 overflow-hidden", className)}>{children}</div>
     </div>
