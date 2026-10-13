@@ -4,6 +4,7 @@ import { AssistantSelect } from "../assistant/components/assistant-select/assist
 import { useSubscribeCommand } from "../command/stores/command-store";
 import { ScrollArea } from "../design-system/components/shadcn-ui/scroll-area";
 import { toast } from "../design-system/components/shadcn-ui/toast";
+import { useSmoothScroll } from "../design-system/hooks/use-smooth-scroll";
 import { truncate } from "../design-system/lib/utils";
 import { KeyboardAccessible } from "../keyboard/components/keyboard-accessible/keyboard-accessible";
 import { usePersistStateStore } from "../persist-state/stores/persist-state-store";
@@ -11,8 +12,6 @@ import { ChatInput, type ChatInputSubmitOptions } from "./components/chat-input/
 import { ChatLayout } from "./components/chat-layout/chat-layout";
 import { ChatMessageList } from "./components/chat-message-list/chat-message-list";
 import { useChatController } from "./hooks/use-chat-controller";
-
-const SCROLL_STEP_PX = 80;
 
 export function ChatPage() {
   const params = useParams();
@@ -55,21 +54,14 @@ export function ChatPage() {
   };
 
   const scrollViewportRef = useRef<HTMLDivElement>(null);
-
-  const handleScrollDown = useCallback(() => {
-    scrollViewportRef.current?.scrollBy({ top: SCROLL_STEP_PX, behavior: "smooth" });
-  }, []);
-
-  const handleScrollUp = useCallback(() => {
-    scrollViewportRef.current?.scrollBy({ top: -SCROLL_STEP_PX, behavior: "smooth" });
-  }, []);
+  const { scrollDown, scrollUp } = useSmoothScroll(scrollViewportRef, 50);
 
   const handleNewConversation = useCallback(() => {
     navigate("/chat");
   }, [navigate]);
 
-  useSubscribeCommand("chat.scroll-down", handleScrollDown);
-  useSubscribeCommand("chat.scroll-up", handleScrollUp);
+  useSubscribeCommand("chat.scroll-down", scrollDown);
+  useSubscribeCommand("chat.scroll-up", scrollUp);
   useSubscribeCommand("chat.new-conversation", handleNewConversation);
 
   return (
