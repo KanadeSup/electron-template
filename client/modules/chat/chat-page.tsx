@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router";
 import { AssistantSelect } from "../assistant/components/assistant-select/assistant-select";
 import { useSubscribeCommand } from "../command/stores/command-store";
@@ -68,6 +68,12 @@ export function ChatPage() {
     inputRef.current?.focus();
     keyboardActions.changeActiveGroupId("chat-input");
   }, [keyboardActions]);
+
+  useEffect(() => {
+    if (conversationId == null) {
+      inputRef.current?.focus();
+    }
+  }, [conversationId]);
 
   useSubscribeCommand("chat.scroll-down", scrollDown);
   useSubscribeCommand("chat.scroll-up", scrollUp);
