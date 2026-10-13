@@ -1,5 +1,7 @@
+import { useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router";
 import { AssistantSelect } from "../assistant/components/assistant-select/assistant-select";
+import { useSubscribeCommand } from "../command/stores/command-store";
 import { ScrollArea } from "../design-system/components/shadcn-ui/scroll-area";
 import { toast } from "../design-system/components/shadcn-ui/toast";
 import { truncate } from "../design-system/lib/utils";
@@ -9,6 +11,8 @@ import { ChatInput, type ChatInputSubmitOptions } from "./components/chat-input/
 import { ChatLayout } from "./components/chat-layout/chat-layout";
 import { ChatMessageList } from "./components/chat-message-list/chat-message-list";
 import { useChatController } from "./hooks/use-chat-controller";
+
+const SCROLL_STEP_PX = 80;
 
 export function ChatPage() {
   const params = useParams();
@@ -50,13 +54,31 @@ export function ChatPage() {
     }
   };
 
+  const scrollViewportRef = useRef<HTMLDivElement>(null);
+
+  const handleScrollDown = useCallback(() => {
+    scrollViewportRef.current?.scrollBy({ top: SCROLL_STEP_PX, behavior: "smooth" });
+  }, []);
+
+  const handleScrollUp = useCallback(() => {
+    scrollViewportRef.current?.scrollBy({ top: -SCROLL_STEP_PX, behavior: "smooth" });
+  }, []);
+
+  const handleNewConversation = useCallback(() => {
+    navigate("/chat");
+  }, [navigate]);
+
+  useSubscribeCommand("chat.scroll-down", handleScrollDown);
+  useSubscribeCommand("chat.scroll-up", handleScrollUp);
+  useSubscribeCommand("chat.new-conversation", handleNewConversation);
+
   return (
     <ChatLayout className="flex flex-col gap-3 relative" onDeleted={handleDeleted}>
       <KeyboardAccessible groupId="chat" className="w-full h-full">
         <div className="w-full">
           <AssistantSelect />
         </div>
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1" viewportRef={scrollViewportRef}>
           <div className="flex flex-col items-center w-full h-full">
             <div className="max-w-325 w-full px-32 h-full">
               <ChatMessageList
