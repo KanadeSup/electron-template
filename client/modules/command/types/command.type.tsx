@@ -5,6 +5,8 @@ export type CommandId =
   | "app-sidebar.toggle-and-focus"
   | "chat.scroll-down"
   | "chat.scroll-up"
-  | "chat.new-conversation";
+  | "chat.new-conversation"
+  | "chat.focus-input"
+  | "chat-input.exit-focus";
 
-export type GroupId = "general" | "app-sidebar" | "chat";
+export type GroupId = "general" | "app-sidebar" | "chat" | "chat-input";

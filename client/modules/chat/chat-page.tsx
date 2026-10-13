@@ -7,6 +7,7 @@ import { toast } from "../design-system/components/shadcn-ui/toast";
 import { useSmoothScroll } from "../design-system/hooks/use-smooth-scroll";
 import { truncate } from "../design-system/lib/utils";
 import { KeyboardAccessible } from "../keyboard/components/keyboard-accessible/keyboard-accessible";
+import { useKeyboardStore } from "../keyboard/stores/keyboard-store";
 import { usePersistStateStore } from "../persist-state/stores/persist-state-store";
 import { ChatInput, type ChatInputSubmitOptions } from "./components/chat-input/chat-input";
 import { ChatLayout } from "./components/chat-layout/chat-layout";
@@ -19,6 +20,9 @@ export function ChatPage() {
 
   const navigate = useNavigate();
   const persistStateActions = usePersistStateStore((state) => state.actions);
+
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const keyboardActions = useKeyboardStore((state) => state.actions);
 
   const chatController = useChatController({
     conversationId,
@@ -60,9 +64,15 @@ export function ChatPage() {
     navigate("/chat");
   }, [navigate]);
 
+  const handleFocusInput = useCallback(() => {
+    inputRef.current?.focus();
+    keyboardActions.changeActiveGroupId("chat-input");
+  }, [keyboardActions]);
+
   useSubscribeCommand("chat.scroll-down", scrollDown);
   useSubscribeCommand("chat.scroll-up", scrollUp);
   useSubscribeCommand("chat.new-conversation", handleNewConversation);
+  useSubscribeCommand("chat.focus-input", handleFocusInput);
 
   return (
     <ChatLayout className="flex flex-col gap-3 relative" onDeleted={handleDeleted}>
@@ -84,6 +94,7 @@ export function ChatPage() {
         <div className="absolute bottom-0 w-full flex justify-center">
           <div className="max-w-330 w-full px-24">
             <ChatInput
+              ref={inputRef}
               placeholder="Ask me anything..."
               initialModel={{
                 key: conversationId?.toString() ?? null,

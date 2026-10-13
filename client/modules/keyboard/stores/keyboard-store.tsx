@@ -40,6 +40,7 @@ export type KeyboardStore = {
     resetKeybinding: (commandId: CommandId) => Promise<KeybindingOperationResult>;
     registerGroup: (groupId: GroupId) => KeybindingOperationResult;
     unregisterGroup: (groupId: GroupId) => void;
+    changeActiveGroupId: (groupId: GroupId) => void;
   };
 };
 
@@ -193,6 +194,10 @@ export const useKeyboardStore = create<KeyboardStore>((set, get) => ({
       set((state) => ({
         availableGroups: state.availableGroups.filter((group) => group !== groupId),
       }));
+    },
+
+    changeActiveGroupId: (groupId) => {
+      set({ activeGroupId: groupId });
     },
   },
 }));

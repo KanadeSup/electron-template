@@ -19,9 +19,6 @@ export function KeyboardProvider(props: KeyboardProviderProps) {
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
-        return;
-      }
       if (!activeGroupId) return;
 
       const pressedKeys = getKeysFromEvent(event, { ignoreOnlyModifiers: true });

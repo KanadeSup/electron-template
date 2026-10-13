@@ -17,9 +17,5 @@ export function KeyboardAccessible(props: KeyboardAccessibleProps) {
     return <div className={cn("text-red-500", className)}>{error}</div>;
   }
 
-  return (
-    <div className={cn(isActive && "border-2 border-blue-500/40 rounded-lg", className)}>
-      {children}
-    </div>
-  );
+  return <div className={cn(className)}>{children}</div>;
 }
