@@ -24,6 +24,9 @@ export function ChatPage() {
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const keyboardActions = useKeyboardStore((state) => state.actions);
 
+  const scrollViewportRef = useRef<HTMLDivElement>(null);
+  const { scrollDown, scrollUp } = useSmoothScroll(scrollViewportRef, 50);
+
   const chatController = useChatController({
     conversationId,
   });
@@ -56,9 +59,6 @@ export function ChatPage() {
       navigate("/chat");
     }
   };
-
-  const scrollViewportRef = useRef<HTMLDivElement>(null);
-  const { scrollDown, scrollUp } = useSmoothScroll(scrollViewportRef, 50);
 
   const handleNewConversation = useCallback(() => {
     navigate("/chat");
