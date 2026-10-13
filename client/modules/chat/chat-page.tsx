@@ -66,7 +66,7 @@ export function ChatPage() {
         </div>
       </ScrollArea>
       <div className="absolute bottom-0 w-full flex justify-center">
-        <div className="max-w-325 w-full px-32">
+        <div className="max-w-330 w-full px-24">
           <ChatInput
             placeholder="Ask me anything..."
             initialModel={{
