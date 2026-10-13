@@ -1,5 +1,6 @@
-import type { CommandId } from "@client/modules/command/types/command.type";
+import type { CommandId, GroupId } from "@client/modules/command/types/command.type";
 import Logger from "electron-log/renderer.js";
+import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { getMappedKeys, resetKey, setKey, unsetKey } from "../api/keyboard.api";
 import {
@@ -12,6 +13,7 @@ import {
 export type KeybindingOperationResult = {
   success: boolean;
   errorCode?: KeybindingOperationErrorCode;
+  errorMessage?: string;
 };
 
 export type KeybindingOperationErrorCode =
@@ -21,6 +23,7 @@ export type KeybindingOperationErrorCode =
 
 export type Keybinding = {
   commandId: CommandId;
+  groupId: GroupId;
   sequence: string | null;
   keys: string[];
 };
@@ -28,11 +31,15 @@ export type Keybinding = {
 export type KeyboardStore = {
   keybindings: Keybinding[];
   isLoading: boolean;
+  activeGroupId: GroupId | null;
+  availableGroups: GroupId[];
   actions: {
     load(): Promise<KeybindingOperationResult>;
     setKeybinding: (commandId: CommandId, sequence: string) => Promise<KeybindingOperationResult>;
     unsetKeybinding: (commandId: CommandId) => Promise<KeybindingOperationResult>;
     resetKeybinding: (commandId: CommandId) => Promise<KeybindingOperationResult>;
+    registerGroup: (groupId: GroupId) => KeybindingOperationResult;
+    unregisterGroup: (groupId: GroupId) => void;
   };
 };
 
@@ -41,6 +48,8 @@ const SCOPE = "useKeyboardStore";
 export const useKeyboardStore = create<KeyboardStore>((set, get) => ({
   keybindings: [],
   isLoading: false,
+  activeGroupId: "chat",
+  availableGroups: [],
   actions: {
     load: async () => {
       set({ isLoading: true });
@@ -162,5 +171,49 @@ export const useKeyboardStore = create<KeyboardStore>((set, get) => ({
 
       return { success: true };
     },
+
+    registerGroup: (groupId) => {
+      const availableGroups = get().availableGroups;
+      if (availableGroups.includes(groupId)) {
+        Logger.scope(SCOPE).error(`Group ${groupId} already registered. Skipping registration.`);
+        return {
+          success: false,
+          errorMessage: `Group ${groupId} already registered.`,
+        };
+      }
+
+      set((state) => ({
+        availableGroups: [...state.availableGroups, groupId],
+      }));
+
+      return { success: true };
+    },
+
+    unregisterGroup: (groupId) => {
+      set((state) => ({
+        availableGroups: state.availableGroups.filter((group) => group !== groupId),
+      }));
+    },
   },
 }));
+
+export const useRegisterGroup = (groupId: GroupId) => {
+  const actions = useKeyboardStore((state) => state.actions);
+  const activeGroupId = useKeyboardStore((state) => state.activeGroupId);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const result = actions.registerGroup(groupId);
+    if (!result.success) {
+      setError(result.errorMessage ?? "Something went wrong while registering the group.");
+    }
+
+    return () => actions.unregisterGroup(groupId);
+  }, [groupId, actions]);
+
+  return {
+    isActive: activeGroupId === groupId,
+    activeGroupId: activeGroupId,
+    error: error,
+  };
+};

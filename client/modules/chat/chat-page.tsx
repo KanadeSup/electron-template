@@ -3,6 +3,7 @@ import { AssistantSelect } from "../assistant/components/assistant-select/assist
 import { ScrollArea } from "../design-system/components/shadcn-ui/scroll-area";
 import { toast } from "../design-system/components/shadcn-ui/toast";
 import { truncate } from "../design-system/lib/utils";
+import { KeyboardAccessible } from "../keyboard/components/keyboard-accessible/keyboard-accessible";
 import { usePersistStateStore } from "../persist-state/stores/persist-state-store";
 import { ChatInput, type ChatInputSubmitOptions } from "./components/chat-input/chat-input";
 import { ChatLayout } from "./components/chat-layout/chat-layout";
@@ -51,33 +52,35 @@ export function ChatPage() {
 
   return (
     <ChatLayout className="flex flex-col gap-3 relative" onDeleted={handleDeleted}>
-      <div className="w-full">
-        <AssistantSelect />
-      </div>
-      <ScrollArea className="flex-1">
-        <div className="flex flex-col items-center w-full h-full">
-          <div className="max-w-325 w-full px-32 h-full">
-            <ChatMessageList
-              messages={chatController.displayMessages}
-              loading={chatController.isLoading}
-              className="h-full"
+      <KeyboardAccessible groupId="chat" className="w-full h-full">
+        <div className="w-full">
+          <AssistantSelect />
+        </div>
+        <ScrollArea className="flex-1">
+          <div className="flex flex-col items-center w-full h-full">
+            <div className="max-w-325 w-full px-32 h-full">
+              <ChatMessageList
+                messages={chatController.displayMessages}
+                loading={chatController.isLoading}
+                className="h-full"
+              />
+            </div>
+          </div>
+        </ScrollArea>
+        <div className="absolute bottom-0 w-full flex justify-center">
+          <div className="max-w-330 w-full px-24">
+            <ChatInput
+              placeholder="Ask me anything..."
+              initialModel={{
+                key: conversationId?.toString() ?? null,
+                value: chatController.mostRecentlyModel,
+              }}
+              onSubmit={handleSubmit}
+              onModelChange={(model) => persistStateActions.setSelectedModel(model)}
             />
           </div>
         </div>
-      </ScrollArea>
-      <div className="absolute bottom-0 w-full flex justify-center">
-        <div className="max-w-330 w-full px-24">
-          <ChatInput
-            placeholder="Ask me anything..."
-            initialModel={{
-              key: conversationId?.toString() ?? null,
-              value: chatController.mostRecentlyModel,
-            }}
-            onSubmit={handleSubmit}
-            onModelChange={(model) => persistStateActions.setSelectedModel(model)}
-          />
-        </div>
-      </div>
+      </KeyboardAccessible>
     </ChatLayout>
   );
 }

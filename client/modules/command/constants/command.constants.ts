@@ -14,6 +14,10 @@ export const COMMAND_GROUPS: CommandGroup[] = [
     groupId: "app-sidebar",
     groupLabel: "App Sidebar",
   },
+  {
+    groupId: "chat",
+    groupLabel: "Chat",
+  },
 ];
 
 export type CommandDefinition = {
@@ -41,6 +45,25 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
     commandLabel: "Toggle App Sidebar",
     groupId: "app-sidebar",
     defaultSequenceKey: "b",
+  },
+  // Chat
+  {
+    commandId: "chat.scroll-down",
+    commandLabel: "Scroll Down",
+    groupId: "chat",
+    defaultSequenceKey: "j",
+  },
+  {
+    commandId: "chat.scroll-up",
+    commandLabel: "Scroll Up",
+    groupId: "chat",
+    defaultSequenceKey: "k",
+  },
+  {
+    commandId: "chat.new-conversation",
+    commandLabel: "New Conversation",
+    groupId: "chat",
+    defaultSequenceKey: "n",
   },
 ];
 

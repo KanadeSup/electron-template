@@ -14,6 +14,7 @@ export function KeyboardProvider(props: KeyboardProviderProps) {
 
   const keybindings = useKeyboardStore((state) => state.keybindings);
   const actions = useKeyboardStore((state) => state.actions);
+  const activeGroupId = useKeyboardStore((state) => state.activeGroupId);
   const dispatch = useCommandStore((state) => state.actions.dispatch);
 
   const handleKeyDown = useCallback(
@@ -21,11 +22,17 @@ export function KeyboardProvider(props: KeyboardProviderProps) {
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         return;
       }
+      if (!activeGroupId) return;
+
       const pressedKeys = getKeysFromEvent(event, { ignoreOnlyModifiers: true });
       const sequence = keysToSequence(pressedKeys);
 
       bufferRef.current.push(sequence);
-      const matchResult = matchKeybinding(keysToSequence(bufferRef.current), keybindings);
+      const matchResult = matchKeybinding(
+        keysToSequence(bufferRef.current),
+        keybindings,
+        activeGroupId,
+      );
       if (matchResult.type === "none") {
         bufferRef.current = [];
         return;
@@ -40,7 +47,7 @@ export function KeyboardProvider(props: KeyboardProviderProps) {
       dispatch(matchResult.keybinding.commandId);
       bufferRef.current = [];
     },
-    [keybindings, dispatch],
+    [keybindings, activeGroupId, dispatch],
   );
 
   useEffect(() => {
