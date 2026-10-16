@@ -18,6 +18,10 @@ export const COMMAND_GROUPS: CommandGroup[] = [
     groupId: "chat",
     groupLabel: "Chat",
   },
+  {
+    groupId: "input-mode",
+    groupLabel: "Input Mode",
+  },
 ];
 
 export type CommandDefinition = {
@@ -41,6 +45,13 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
     defaultSequenceKey: "k",
   },
   {
+    commandId: "general.focus-input",
+    commandLabel: "Focus Input",
+    groupId: "general",
+    defaultSequenceKey: "i",
+  },
+  // App Sidebar
+  {
     commandId: "app-sidebar.toggle",
     commandLabel: "Toggle App Sidebar",
     groupId: "app-sidebar",
@@ -52,6 +63,13 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
     commandLabel: "New Conversation",
     groupId: "chat",
     defaultSequenceKey: "n",
+  },
+  // Input Mode
+  {
+    commandId: "input-mode.exit-input-mode",
+    commandLabel: "Exit Input Mode",
+    groupId: "input-mode",
+    defaultSequenceKey: "jj",
   },
 ];
 
