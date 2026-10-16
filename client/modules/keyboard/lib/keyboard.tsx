@@ -1,5 +1,4 @@
 import { COMMAND_DEFINITIONS } from "@client/modules/command/constants/command.constants";
-import type { GroupId } from "@client/modules/command/types/command.type";
 import type { Keybinding } from "../stores/keyboard-store";
 
 export const MODIFIER_KEYS = ["ctrl", "alt", "shift", "meta"];
@@ -144,12 +143,10 @@ export type KeybindingMatchResult =
 export function matchKeybinding(
   sequenceString: string,
   keybindings: Keybinding[],
-  groupId: GroupId,
 ): KeybindingMatchResult {
   if (!sequenceString) return { type: "none" };
 
   for (const keybinding of keybindings) {
-    if (keybinding.groupId !== groupId) continue;
     if (keybinding.sequence === sequenceString) {
       return { type: "match", keybinding };
     }

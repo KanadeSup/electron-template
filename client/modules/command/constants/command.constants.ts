@@ -18,10 +18,6 @@ export const COMMAND_GROUPS: CommandGroup[] = [
     groupId: "chat",
     groupLabel: "Chat",
   },
-  {
-    groupId: "chat-input",
-    groupLabel: "Chat Input",
-  },
 ];
 
 export type CommandDefinition = {
@@ -52,34 +48,10 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   },
   // Chat
   {
-    commandId: "chat.scroll-down",
-    commandLabel: "Scroll Down",
-    groupId: "chat",
-    defaultSequenceKey: "j",
-  },
-  {
-    commandId: "chat.scroll-up",
-    commandLabel: "Scroll Up",
-    groupId: "chat",
-    defaultSequenceKey: "k",
-  },
-  {
     commandId: "chat.new-conversation",
     commandLabel: "New Conversation",
     groupId: "chat",
     defaultSequenceKey: "n",
-  },
-  {
-    commandId: "chat.focus-input",
-    commandLabel: "Focus Chat Input",
-    groupId: "chat",
-    defaultSequenceKey: "i",
-  },
-  {
-    commandId: "chat-input.exit-focus",
-    commandLabel: "Exit Focus on Chat Input",
-    groupId: "chat-input",
-    defaultSequenceKey: "jj",
   },
 ];
 

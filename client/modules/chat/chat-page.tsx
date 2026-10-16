@@ -6,8 +6,6 @@ import { ScrollArea } from "../design-system/components/shadcn-ui/scroll-area";
 import { toast } from "../design-system/components/shadcn-ui/toast";
 import { useSmoothScroll } from "../design-system/hooks/use-smooth-scroll";
 import { truncate } from "../design-system/lib/utils";
-import { KeyboardAccessible } from "../keyboard/components/keyboard-accessible/keyboard-accessible";
-import { useKeyboardStore } from "../keyboard/stores/keyboard-store";
 import { usePersistStateStore } from "../persist-state/stores/persist-state-store";
 import { ChatInput, type ChatInputSubmitOptions } from "./components/chat-input/chat-input";
 import { ChatLayout } from "./components/chat-layout/chat-layout";
@@ -22,7 +20,6 @@ export function ChatPage() {
   const persistStateActions = usePersistStateStore((state) => state.actions);
 
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
-  const keyboardActions = useKeyboardStore((state) => state.actions);
 
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   const { scrollDown, scrollUp } = useSmoothScroll(scrollViewportRef, 50);
@@ -64,54 +61,46 @@ export function ChatPage() {
     navigate("/chat");
   }, [navigate]);
 
-  const handleFocusInput = useCallback(() => {
-    inputRef.current?.focus();
-    keyboardActions.changeActiveGroupId("chat-input");
-  }, [keyboardActions]);
-
   useEffect(() => {
     if (conversationId == null) {
       inputRef.current?.focus();
     }
   }, [conversationId]);
 
-  useSubscribeCommand("chat.scroll-down", scrollDown);
-  useSubscribeCommand("chat.scroll-up", scrollUp);
+  useSubscribeCommand("general.scroll-down", scrollDown);
+  useSubscribeCommand("general.scroll-up", scrollUp);
   useSubscribeCommand("chat.new-conversation", handleNewConversation);
-  useSubscribeCommand("chat.focus-input", handleFocusInput);
 
   return (
     <ChatLayout className="flex flex-col gap-3 relative" onDeleted={handleDeleted}>
-      <KeyboardAccessible groupId="chat" className="w-full h-full">
-        <div className="w-full">
-          <AssistantSelect />
-        </div>
-        <ScrollArea className="flex-1" viewportRef={scrollViewportRef}>
-          <div className="flex flex-col items-center w-full h-full">
-            <div className="max-w-325 w-full px-32 h-full">
-              <ChatMessageList
-                messages={chatController.displayMessages}
-                loading={chatController.isLoading}
-                className="h-full"
-              />
-            </div>
-          </div>
-        </ScrollArea>
-        <div className="absolute bottom-0 w-full flex justify-center">
-          <div className="max-w-330 w-full px-24">
-            <ChatInput
-              ref={inputRef}
-              placeholder="Ask me anything..."
-              initialModel={{
-                key: conversationId?.toString() ?? null,
-                value: chatController.mostRecentlyModel,
-              }}
-              onSubmit={handleSubmit}
-              onModelChange={(model) => persistStateActions.setSelectedModel(model)}
+      <div className="w-full">
+        <AssistantSelect />
+      </div>
+      <ScrollArea className="flex-1" viewportRef={scrollViewportRef}>
+        <div className="flex flex-col items-center w-full h-full">
+          <div className="max-w-325 w-full px-32 h-full">
+            <ChatMessageList
+              messages={chatController.displayMessages}
+              loading={chatController.isLoading}
+              className="h-full"
             />
           </div>
         </div>
-      </KeyboardAccessible>
+      </ScrollArea>
+      <div className="absolute bottom-0 w-full flex justify-center">
+        <div className="max-w-330 w-full px-24">
+          <ChatInput
+            ref={inputRef}
+            placeholder="Ask me anything..."
+            initialModel={{
+              key: conversationId?.toString() ?? null,
+              value: chatController.mostRecentlyModel,
+            }}
+            onSubmit={handleSubmit}
+            onModelChange={(model) => persistStateActions.setSelectedModel(model)}
+          />
+        </div>
+      </div>
     </ChatLayout>
   );
 }
